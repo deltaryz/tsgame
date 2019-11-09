@@ -4,7 +4,7 @@
 
 // made with typescript
 
-import { startRender } from "./render"; // keep the rendering outside the game logic
+import { render } from "./render"; // keep the rendering outside the game logic
 
 // keeps track of game state
 class Game {
@@ -89,7 +89,8 @@ class Item {
 
 // represents which types of tile can exist
 enum TileType {
-  DIRT = "DIRT"
+  DIRT = "DIRT",
+  STONE = "STONE"
 }
 
 // tiles occupy single coordinates of world space
@@ -105,9 +106,15 @@ class Tile {
     return this.type;
   }
 
+  // changes the type of the tile
+  setType(type: TileType) {
+    this.type = type;
+  }
+
   // what should we do when the tile is clicked?
   onClick = () => {
-    console.log("User has clicked a " + this.getType() + " tile!");
+    this.setType(TileType.STONE);
+    render();
   };
 }
 
@@ -258,4 +265,4 @@ export let currentGame = new Game(
 );
 
 // we keep the rendering code separate so that it can easily be changed or reworked
-startRender();
+setTimeout(render, 2000);

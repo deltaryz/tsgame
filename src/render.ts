@@ -2,7 +2,6 @@
 // handles all rendering and visual output
 // this is deliberately kept separate from internal game logic
 
-export const renderFramerate = 30; // what it says on the tin
 import * as PIXI from "pixi.js";
 import { currentGame } from "./game";
 export let ready = false;
@@ -13,7 +12,10 @@ export const app = new PIXI.Application({
 });
 
 // load assets here
-app.loader.add("assets/dirt.png").load(setup);
+app.loader
+  .add("assets/dirt.png")
+  .add("assets/stone.png")
+  .load(setup);
 
 function setup() {
   document.body.appendChild(app.view);
@@ -22,7 +24,7 @@ function setup() {
 }
 
 // this should be called every time the game updates
-function render() {
+export function render() {
   if (ready) {
     while (app.stage.children[0]) {
       app.stage.removeChild(app.stage.children[0]);
@@ -31,9 +33,21 @@ function render() {
 
     for (let xStep = 0; xStep < currentMap.length; xStep++) {
       for (let yStep = 0; yStep < currentMap[0].length; yStep++) {
-        let currentTile = new PIXI.Sprite(
-          app.loader.resources["assets/dirt.png"].texture
-        );
+        let currentTile: PIXI.Sprite;
+
+        // set appropriate texture
+        switch (currentMap[xStep][yStep].getType()) {
+          default:
+          case "DIRT":
+            currentTile = new PIXI.Sprite(
+              app.loader.resources["assets/dirt.png"].texture
+            );
+            break;
+          case "STONE":
+            currentTile = new PIXI.Sprite(
+              app.loader.resources["assets/stone.png"].texture
+            );
+        }
         currentTile.x = (xStep + 1) * 16 - 16;
         currentTile.y = (yStep + 1) * 16 - 16;
         currentTile.interactive = true; // tiles should be clickable!
@@ -42,11 +56,4 @@ function render() {
       }
     }
   }
-}
-
-export function startRender() {
-  setTimeout(function() {
-    requestAnimationFrame(startRender);
-    render();
-  }, 1000 / renderFramerate);
 }
