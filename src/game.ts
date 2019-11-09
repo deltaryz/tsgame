@@ -6,6 +6,8 @@
 
 import { render } from "./render"; // keep the rendering outside the game logic
 
+export let currentGame: Game; // this will be used to reference anything relating to the current game state
+
 // keeps track of game state
 class Game {
   private currentRoom: Room;
@@ -31,6 +33,7 @@ class Game {
 
   // sets the current room
   setCurrentRoom(newRoom: Room) {
+    console.log("Changing rooms...");
     this.currentRoom = newRoom;
   }
 
@@ -41,6 +44,7 @@ class Game {
 
   // sets the current GameState
   setCurrentState(newState: GameState) {
+    console.log("Setting game state to to " + newState);
     this.currentState = newState;
   }
 
@@ -51,6 +55,7 @@ class Game {
 
   // sets the current Player
   setCurrentPlayer(player: Player) {
+    console.log("Setting player to " + player.getName());
     this.currentPlayer = player;
   }
 }
@@ -90,7 +95,8 @@ class Item {
 // represents which types of tile can exist
 enum TileType {
   DIRT = "DIRT",
-  STONE = "STONE"
+  STONE = "STONE",
+  WATER = "WATER"
 }
 
 // tiles occupy single coordinates of world space
@@ -113,7 +119,7 @@ class Tile {
 
   // what should we do when the tile is clicked?
   onClick = () => {
-    this.setType(TileType.STONE);
+    this.setType(currentGame.getCurrentPlayer().getSelectedTile());
     render();
   };
 }
@@ -145,10 +151,33 @@ class ItemEntity extends Entity {
 // Player class
 class Player extends Entity {
   private name: string;
+  private selectedTile: TileType;
 
   constructor(name: string, position?: Position, inventoryItems?: Item[]) {
     super(position, inventoryItems);
 
+    this.name = name;
+    this.selectedTile = TileType.STONE;
+  }
+
+  // returns the selected tile type
+  getSelectedTile(): TileType {
+    return this.selectedTile;
+  }
+
+  // sets the selected tile type
+  setSelectedTile(tile: TileType) {
+    console.log("Player's selected tile set to " + tile);
+    this.selectedTile = tile;
+  }
+
+  // returns the player's name
+  getName(): string {
+    return this.name;
+  }
+
+  // sets the player's name
+  setName(name: string) {
     this.name = name;
   }
 }
@@ -174,7 +203,7 @@ class Inventory {
 
 // Different room types will generate different terrain
 enum RoomType {
-  BASIC
+  BASIC = "BASIC"
 }
 
 // the world map
@@ -226,7 +255,7 @@ class Room {
   setTile(locX: number, locY: number, tile: Tile) {
     if (locX < this.sizeX && locX >= 0 && locY < this.sizeY && locY >= 0) {
       // make sure it's a valid tile!
-      this.tiles[locX][locY] = undefined;
+      this.tiles[locX][locY] = undefined; // make sure the old tiles get GC'd
       this.tiles[locX][locY] = tile;
     } else {
       console.log(
@@ -253,16 +282,24 @@ interface Position {
   y: number;
 }
 
+// INITIALIZE UI
+let waterButton = document.getElementById("waterButton");
+let stoneButton = document.getElementById("stoneButton");
+
+waterButton.onclick = function() {
+  currentGame.getCurrentPlayer().setSelectedTile(TileType.WATER);
+};
+
+stoneButton.onclick = function() {
+  currentGame.getCurrentPlayer().setSelectedTile(TileType.STONE);
+};
+
 // INITIALIZE GAME
 
 let defaultRoom = new Room(RoomType.BASIC, 16, 16);
 let defaultPlayer = new Player("Farmer", { x: 0, y: 0 });
 // this will contain everything relevant to the current game
-export let currentGame = new Game(
-  defaultRoom,
-  GameState.INITIALIZE,
-  defaultPlayer
-);
+currentGame = new Game(defaultRoom, GameState.INITIALIZE, defaultPlayer);
 
 // we keep the rendering code separate so that it can easily be changed or reworked
 setTimeout(render, 2000);

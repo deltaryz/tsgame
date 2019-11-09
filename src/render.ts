@@ -15,6 +15,7 @@ export const app = new PIXI.Application({
 app.loader
   .add("assets/dirt.png")
   .add("assets/stone.png")
+  .add("assets/water.png")
   .load(setup);
 
 function setup() {
@@ -47,6 +48,12 @@ export function render() {
             currentTile = new PIXI.Sprite(
               app.loader.resources["assets/stone.png"].texture
             );
+            break;
+          case "WATER":
+            currentTile = new PIXI.Sprite(
+              app.loader.resources["assets/water.png"].texture
+            );
+            break;
         }
         currentTile.x = (xStep + 1) * 16 - 16;
         currentTile.y = (yStep + 1) * 16 - 16;
