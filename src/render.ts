@@ -7,13 +7,17 @@ import * as PIXI from "pixi.js";
 import { currentGame } from "./game";
 export let ready = false;
 
-export const app = new PIXI.Application({ width: 256, height: 256 });
+export const app = new PIXI.Application({
+  width: 256,
+  height: 256
+});
 
 // load assets here
 app.loader.add("assets/dirt.png").load(setup);
 
 function setup() {
   document.body.appendChild(app.view);
+
   ready = true;
 }
 
@@ -32,6 +36,8 @@ function render() {
         );
         currentTile.x = (xStep + 1) * 16 - 16;
         currentTile.y = (yStep + 1) * 16 - 16;
+        currentTile.interactive = true; // tiles should be clickable!
+        currentTile.on("mousedown", currentMap[xStep][yStep].onClick);
         app.stage.addChild(currentTile);
       }
     }

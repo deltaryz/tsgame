@@ -57,9 +57,9 @@ class Game {
 
 // represents what state the game is currently in
 enum GameState {
-  INITIALIZE,
-  MENU,
-  GAMEPLAY
+  INITIALIZE = "INITIALIZE",
+  MENU = "MENU",
+  GAMEPLAY = "GAMEPLAY"
 }
 
 // Item class
@@ -89,7 +89,7 @@ class Item {
 
 // represents which types of tile can exist
 enum TileType {
-  DIRT
+  DIRT = "DIRT"
 }
 
 // tiles occupy single coordinates of world space
@@ -104,6 +104,11 @@ class Tile {
   getType(): TileType {
     return this.type;
   }
+
+  // what should we do when the tile is clicked?
+  onClick = () => {
+    console.log("User has clicked a " + this.getType() + " tile!");
+  };
 }
 
 // Entity class
@@ -205,6 +210,7 @@ class Room {
     }
   }
 
+  // inserts an entity into the room
   addEntity(entity: Entity) {
     this.entities.push(entity);
   }
