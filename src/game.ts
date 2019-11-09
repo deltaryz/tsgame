@@ -4,8 +4,7 @@
 
 // made with typescript
 
-import { render } from "./render";
-import { ready } from "./render";
+import { startRender } from "./render"; // keep the rendering outside the game logic
 
 // keeps track of game state
 class Game {
@@ -25,77 +24,100 @@ class Game {
     this.currentPlayer = currentPlayer;
   }
 
+  // returns the current room
   getCurrentRoom(): Room {
     return this.currentRoom;
   }
 
+  // sets the current room
   setCurrentRoom(newRoom: Room) {
     this.currentRoom = newRoom;
   }
 
+  // returns the current GameState
   getCurrentState(): GameState {
     return this.currentState;
   }
 
+  // sets the current GameState
   setCurrentState(newState: GameState) {
     this.currentState = newState;
   }
 
+  // returns the current Player
   getCurrentPlayer(): Player {
     return this.currentPlayer;
   }
 
+  // sets the current Player
   setCurrentPlayer(player: Player) {
     this.currentPlayer = player;
   }
 }
 
+// represents what state the game is currently in
 enum GameState {
-  INITIALIZE
+  INITIALIZE,
+  MENU,
+  GAMEPLAY
 }
 
 // Item class
 class Item {
   private name: string;
 
+  // item names are not the same thing as the item type!
   constructor(name: string) {
     this.name = name;
   }
 
+  // returns the name of the item
   getName(): string {
     return this.name;
   }
 
+  // sets the name of the item
   setName(name: string) {
     this.name = name;
   }
 
+  // returns a description of the item
   inspect(target: Entity): String {
     return "TODO: item inspection";
   }
 }
 
+// represents which types of tile can exist
 enum TileType {
   DIRT
 }
 
+// tiles occupy single coordinates of world space
 class Tile {
   private type: TileType;
 
   constructor(type: TileType) {
     this.type = type;
   }
+
+  // returns the type of tile this is
+  getType(): TileType {
+    return this.type;
+  }
 }
 
 // Entity class
+// Any object in the world that is not a tile
 class Entity {
-  private inventory: Item[];
+  private inventory: Inventory; // all entities can have inventories
   private position: Position;
 
-  constructor(position?: Position) {
+  constructor(position?: Position, inventoryItems?: Item[]) {
     if (!position == undefined) {
       this.position = position;
     }
+
+    this.inventory = new Inventory(inventoryItems);
   }
 }
 
@@ -104,11 +126,7 @@ class ItemEntity extends Entity {
   private item: Item;
 
   constructor(position?: Position) {
-    if (position == undefined) {
-      super();
-    } else {
-      super(position);
-    }
+    super(position);
   }
 }
 
@@ -116,12 +134,8 @@ class ItemEntity extends Entity {
 class Player extends Entity {
   private name: string;
 
-  constructor(name: string, position?: Position) {
-    if (position == undefined) {
-      super();
-    } else {
-      super(position);
-    }
+  constructor(name: string, position?: Position, inventoryItems?: Item[]) {
+    super(position, inventoryItems);
 
     this.name = name;
   }
@@ -132,12 +146,21 @@ class Inventory {
   private items: Item[];
   private capacity: number;
 
+  constructor(items?: Item[]) {
+    if (items != undefined) {
+      this.items = items;
+    } else {
+      this.items = [];
+    }
+  }
+
   // insert an item into the inventory
   addItem(item: Item): string {
     return "TODO: add items to inventories";
   }
 }
 
+// Different room types will generate different terrain
 enum RoomType {
   BASIC
 }
@@ -194,7 +217,9 @@ class Room {
       this.tiles[locX][locY] = tile;
     } else {
       console.log(
-        "Something attempted to place a tile at " +
+        "Something attempted to place a " +
+          tile.getType() +
+          " tile at " +
           locX +
           ", " +
           locY +
@@ -227,10 +252,4 @@ export let currentGame = new Game(
 );
 
 // we keep the rendering code separate so that it can easily be changed or reworked
-function draw() {
-  setTimeout(function() {
-    requestAnimationFrame(draw);
-    render();
-  }, 1000 / 30);
-}
-draw();
+startRender();

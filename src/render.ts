@@ -2,6 +2,7 @@
 // handles all rendering and visual output
 // this is deliberately kept separate from internal game logic
 
+export const renderFramerate = 30; // what it says on the tin
 import * as PIXI from "pixi.js";
 import { currentGame } from "./game";
 export let ready = false;
@@ -17,7 +18,7 @@ function setup() {
 }
 
 // this should be called every time the game updates
-export function render() {
+function render() {
   if (ready) {
     while (app.stage.children[0]) {
       app.stage.removeChild(app.stage.children[0]);
@@ -35,4 +36,11 @@ export function render() {
       }
     }
   }
+}
+
+export function startRender() {
+  setTimeout(function() {
+    requestAnimationFrame(startRender);
+    render();
+  }, 1000 / renderFramerate);
 }
