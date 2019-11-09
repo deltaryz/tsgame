@@ -8,6 +8,7 @@ export let ready = false;
 
 export const app = new PIXI.Application({ width: 256, height: 256 });
 
+// load assets here
 app.loader.add("assets/dirt.png").load(setup);
 
 function setup() {
