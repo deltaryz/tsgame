@@ -7,69 +7,99 @@ import * as room from "./room"; // everything room related!
 
 // Item class
 
+// this contains metadata of what an item is/does
+export interface ItemData {
+  name: string;
+  use(entityTarget?: entity.Entity, tileTarget?: tile.Tile): boolean; // returns whether or not the action was successful
+  keyItem: boolean; // key items get special behavior
+}
+
+// Item registry
+// This matches ITEM_TYPE keys with ItemData values
+// Use itemRegistry.get(ITEM_TYPE) to access items!
+export let itemRegistry = new Map<ITEM_TYPE, ItemData>();
+
+// Item types
+// These are used to identify specific types of items
+export enum ITEM_TYPE {
+  HANDS = "HANDS",
+  LIFESEED = "LIFESEED"
+}
+
+// Here we define the item metadata and behavior
+itemRegistry
+  .set(ITEM_TYPE.HANDS, {
+    name: "Hands",
+    use: () => {
+      return true;
+    },
+    keyItem: false
+  })
+  .set(ITEM_TYPE.LIFESEED, {
+    name: "Lifeseed",
+    use: () => {
+      return true;
+    },
+    keyItem: false
+  });
+
 // TODO: Using an item should always check to make sure the item actually exists in your inventory!
 export class Item {
-  private name: string;
-  private droppable: boolean;
+  private displayName: string;
+  private type: ITEM_TYPE;
   private quantity: number;
 
   // item names are not the same thing as the item type!
-  constructor(name: string, quantity: number) {
+  constructor(name: string, quantity: number, type: ITEM_TYPE) {
     console.log("Generating new item with name " + name);
-    this.name = name;
-    this.droppable = true; // we assume this to be default for most items
+    this.displayName = name;
     this.quantity = quantity;
+    this.type = type;
   }
 
   // returns a description of the item
-  inspect(target: entity.Entity): String {
+  public inspect(target: entity.Entity): String {
     return "TODO: item inspection";
   }
 
   // returns the name of the item
-  getName(): string {
-    return this.name;
+  public getDisplayName(): string {
+    return this.displayName;
   }
 
   // sets the name of the item
-  setName(name: string) {
-    this.name = name;
+  public setDisplayName(name: string) {
+    this.displayName = name;
   }
 
-  // can this item be dropped?
-  isDroppable(): boolean {
-    return this.droppable;
-  }
-
-  // set whether the item can be dropped
-  setDroppable(droppable: boolean) {
-    this.droppable = droppable;
+  // is this a key item?
+  public isKeyItem(): boolean {
+    return itemRegistry.get(this.type).keyItem;
   }
 
   // how many of this item?
-  getQuantity(): number {
+  public getQuantity(): number {
     return this.quantity;
   }
 
   // set how many there are
-  setQuantity(quantity: number) {
+  public setQuantity(quantity: number) {
     this.quantity = quantity;
   }
 
-  // what should we do when this item is used?
-  // this should be overridden by extending classes
-  // override with onClick = () => { ... }
-  public useItem(entityTarget?: entity.Entity, tileTarget?: tile.Tile) {
-    // items can be used
+  // get the ITEM_TYPE of what item this is
+  public getItemType(): ITEM_TYPE {
+    return this.type;
   }
-}
 
-// special tools that the user cannot remove
-export class KeyItem extends Item {
-  constructor(name: string, quantity: number) {
-    super(name, quantity);
-    console.log("This is a key item!");
-    super.setDroppable(false); // we set this automatically!
+  // get the ItemData of what item this is
+  public getItemData(): ItemData {
+    return itemRegistry.get(this.type);
+  }
+
+  // what should we do when this item is used?
+  public useItem(entityTarget?: entity.Entity, tileTarget?: tile.Tile) {
+    itemRegistry.get(this.type).use(entityTarget, tileTarget);
   }
 }
 

@@ -8,7 +8,7 @@ import * as room from "./room"; // everything room related!
 // Entity class
 
 // textures for entities!
-export enum ENTITY_TEXTURE {
+export enum ENTITY_TYPE {
   PLANT_LIFEBUD = "PLANT_LIFEBUD",
   OBJECT_STONE = "OBJECT_STONE"
 }
@@ -18,12 +18,12 @@ export enum ENTITY_TEXTURE {
 export class Entity {
   private inventory: item.Inventory; // all entities can have inventories
   private position: game.Position;
-  private texture: ENTITY_TEXTURE;
+  private texture: ENTITY_TYPE;
 
   constructor(
     position?: game.Position,
     inventoryItems?: item.Item[],
-    texture?: ENTITY_TEXTURE
+    texture?: ENTITY_TYPE
   ) {
     let outputPosX: number = 0; // assume 0 if nothign else is given
     let outputPosY: number = 0;
@@ -64,12 +64,12 @@ export class Entity {
   }
 
   // get the selected texture of an entity
-  getTexture(): ENTITY_TEXTURE {
+  getTexture(): ENTITY_TYPE {
     return this.texture;
   }
 
   // set the visible texture of an entity
-  setTexture(texture: ENTITY_TEXTURE) {
+  setTexture(texture: ENTITY_TYPE) {
     this.texture = texture;
   }
 
@@ -105,7 +105,7 @@ export class Plant extends Entity {
     console.log("Plant of type " + type);
     switch (type) {
       case PLANT_TYPE.LIFEBUD:
-        this.setTexture(ENTITY_TEXTURE.PLANT_LIFEBUD);
+        this.setTexture(ENTITY_TYPE.PLANT_LIFEBUD);
         break;
     }
     this.type = type;
@@ -127,7 +127,7 @@ export class Plant extends Entity {
         game.currentGame
           .getCurrentPlayer()
           .getInventory()
-          .addItem(new item.Item("Lifeseed", 1));
+          .addItem(new item.Item("Lifeseed", 1, item.ITEM_TYPE.LIFESEED));
         break;
     }
 
@@ -162,7 +162,7 @@ export class Player extends Entity {
     this.name = name;
 
     // initialize inventory
-    let defaultHands = new item.KeyItem("Hands", 1);
+    let defaultHands = new item.Item("Hands", 1, item.ITEM_TYPE.HANDS);
     this.getInventory().addItem(defaultHands);
     this.selectedItem = defaultHands; // this represents nothing
   }
@@ -174,7 +174,7 @@ export class Player extends Entity {
 
   // sets the selected tile type
   setSelectedItem(item: item.Item) {
-    console.log("Player's selected item set to " + item.getName());
+    console.log("Player's selected item set to " + item.getDisplayName());
     this.selectedItem = item;
     render(); // make sure the user sees it!
   }

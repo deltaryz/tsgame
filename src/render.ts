@@ -54,9 +54,10 @@ export function render() {
       .getInventory()
       .getContents()
       .forEach(function(item: item.Item) {
-        console.log("Creating button for item " + item.getName());
+        console.log("Creating button for item " + item.getDisplayName());
         let itemButton = document.createElement("BUTTON");
-        itemButton.innerHTML = item.getName() + " x " + item.getQuantity();
+        itemButton.innerHTML =
+          item.getDisplayName() + " x " + item.getQuantity();
         itemButton.onclick = function() {
           currentGame.getCurrentPlayer().setSelectedItem(item);
         };
@@ -68,7 +69,7 @@ export function render() {
       currentGame
         .getCurrentPlayer()
         .getSelectedItem()
-        .getName() +
+        .getDisplayName() +
       " x " +
       currentGame
         .getCurrentPlayer()
@@ -111,13 +112,13 @@ export function render() {
     currentEntities.forEach(function(currentEntity: entity.Entity) {
       let currentEntitySprite: PIXI.Sprite;
       switch (currentEntity.getTexture()) {
-        case entity.ENTITY_TEXTURE.PLANT_LIFEBUD:
+        case entity.ENTITY_TYPE.PLANT_LIFEBUD:
           currentEntitySprite = new PIXI.Sprite(
             app.loader.resources["assets/lifebud.png"].texture
           );
           break;
 
-        case entity.ENTITY_TEXTURE.OBJECT_STONE:
+        case entity.ENTITY_TYPE.OBJECT_STONE:
           currentEntitySprite = new PIXI.Sprite(
             app.loader.resources["assets/stone.png"].texture
           );
