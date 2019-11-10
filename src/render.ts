@@ -4,9 +4,9 @@
 
 import * as PIXI from "pixi.js"; // neat graphics library
 import { currentGame } from "./game"; // Represents the overall game state
-import { Entity } from "./game"; // Needed for displaying entities
-import { Item } from "./game"; // Needed for displaying inventory items
-import { ENTITY_TEXTURE } from "./game"; // This represents what texture to use
+import * as entity from "./entity"; // Needed for displaying entities
+import * as item from "./item"; // Needed for displaying inventory items
+import * as room from "./room"; // everything room related!
 export let ready = false; // make sure we don't render anything before that has been initialized
 
 let heldItemDisplay = document.getElementById("selectedItemDisplay");
@@ -53,7 +53,7 @@ export function render() {
       .getCurrentPlayer()
       .getInventory()
       .getContents()
-      .forEach(function(item: Item) {
+      .forEach(function(item: item.Item) {
         console.log("Creating button for item " + item.getName());
         let itemButton = document.createElement("BUTTON");
         itemButton.innerHTML = item.getName() + " x " + item.getQuantity();
@@ -108,16 +108,16 @@ export function render() {
     // RENDER ENTITIES
     let currentEntities = currentGame.getCurrentRoom().getEntities();
 
-    currentEntities.forEach(function(currentEntity) {
+    currentEntities.forEach(function(currentEntity: entity.Entity) {
       let currentEntitySprite: PIXI.Sprite;
       switch (currentEntity.getTexture()) {
-        case ENTITY_TEXTURE.PLANT_LIFEBUD:
+        case entity.ENTITY_TEXTURE.PLANT_LIFEBUD:
           currentEntitySprite = new PIXI.Sprite(
             app.loader.resources["assets/lifebud.png"].texture
           );
           break;
 
-        case ENTITY_TEXTURE.OBJECT_STONE:
+        case entity.ENTITY_TEXTURE.OBJECT_STONE:
           currentEntitySprite = new PIXI.Sprite(
             app.loader.resources["assets/stone.png"].texture
           );
