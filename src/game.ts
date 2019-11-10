@@ -80,16 +80,6 @@ enum GAME_STATE {
   GAMEPLAY = "GAMEPLAY"
 }
 
-// todo: item
-
-// todo: tile
-
-// todo: entity
-
-// todo: inventory
-
-// todo: room
-
 // location on map
 export interface Position {
   x: number;
