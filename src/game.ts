@@ -8,6 +8,13 @@ import { render } from "./render"; // keep the rendering outside the game logic
 
 export let currentGame: Game; // this will be used to reference anything relating to the current game state
 
+// what it says on the tin
+function getRandomIntInclusive(min: number, max: number) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive
+}
+
 // keeps track of game state
 class Game {
   private currentRoom: Room;
@@ -21,6 +28,7 @@ class Game {
     currentState: GAME_STATE,
     currentPlayer: Player
   ) {
+    console.log("Game being initialized!");
     this.currentRoom = currentRoom;
     this.currentState = currentState;
     this.currentPlayer = currentPlayer;
@@ -68,12 +76,23 @@ enum GAME_STATE {
 }
 
 // Item class
-class Item {
+// TODO: Using an item should always check to make sure the item actually exists in your inventory!
+export class Item {
   private name: string;
+  private droppable: boolean;
+  private quantity: number;
 
   // item names are not the same thing as the item type!
-  constructor(name: string) {
+  constructor(name: string, quantity: number) {
+    console.log("Generating new item with name " + name);
     this.name = name;
+    this.droppable = true; // we assume this to be default for most items
+    this.quantity = quantity;
+  }
+
+  // returns a description of the item
+  inspect(target: Entity): String {
+    return "TODO: item inspection";
   }
 
   // returns the name of the item
@@ -86,9 +105,40 @@ class Item {
     this.name = name;
   }
 
-  // returns a description of the item
-  inspect(target: Entity): String {
-    return "TODO: item inspection";
+  // can this item be dropped?
+  isDroppable(): boolean {
+    return this.droppable;
+  }
+
+  // set whether the item can be dropped
+  setDroppable(droppable: boolean) {
+    this.droppable = droppable;
+  }
+
+  // how many of this item?
+  getQuantity(): number {
+    return this.quantity;
+  }
+
+  // set how many there are
+  setQuantity(quantity: number) {
+    this.quantity = quantity;
+  }
+
+  // what should we do when this item is used?
+  // this should be overridden by extending classes
+  // override with onClick = () => { ... }
+  public useItem(entityTarget?: Entity, tileTarget?: Tile) {
+    // items can be used
+  }
+}
+
+// special tools that the user cannot remove
+class KeyItem extends Item {
+  constructor(name: string, quantity: number) {
+    super(name, quantity);
+    console.log("This is a key item!");
+    super.setDroppable(false); // we set this automatically!
   }
 }
 
@@ -104,6 +154,7 @@ class Tile {
   private type: TILE_TYPE;
 
   constructor(type: TILE_TYPE) {
+    console.log("Generating new tile of type " + type);
     this.type = type;
   }
 
@@ -119,14 +170,15 @@ class Tile {
 
   // what should we do when the tile is clicked?
   onClick = () => {
-    this.setType(currentGame.getCurrentPlayer().getSelectedTile());
+    // update the screen to represent any changes
     render();
   };
 }
 
 // textures for entities!
 export enum ENTITY_TEXTURE {
-  PLANT_LIFESEED = "PLANT_LIFESEED"
+  PLANT_LIFEBUD = "PLANT_LIFEBUD",
+  OBJECT_STONE = "OBJECT_STONE"
 }
 
 // Entity class
@@ -141,6 +193,23 @@ export class Entity {
     inventoryItems?: Item[],
     texture?: ENTITY_TEXTURE
   ) {
+    let outputPosX: number = 0; // assume 0 if nothign else is given
+    let outputPosY: number = 0;
+    if (position != undefined) {
+      outputPosX = position.x;
+      outputPosY = position.y;
+    }
+    console.log(
+      "Generating new entity!\nPosition: " +
+        outputPosX +
+        "," +
+        outputPosY +
+        "\ninventoryItems: " +
+        inventoryItems +
+        "\nTexture: " +
+        texture
+    );
+
     if (position != undefined) {
       this.position = position;
     } else {
@@ -157,9 +226,29 @@ export class Entity {
     return this.position;
   }
 
+  // sets position of an entity
+  setPosition(pos: Position) {
+    this.position = pos;
+  }
+
   // get the selected texture of an entity
   getTexture(): ENTITY_TEXTURE {
     return this.texture;
+  }
+
+  // set the visible texture of an entity
+  setTexture(texture: ENTITY_TEXTURE) {
+    this.texture = texture;
+  }
+
+  // returns the entity's inventory
+  getInventory(): Inventory {
+    return this.inventory;
+  }
+
+  // completely wipes a user's inventory
+  setInventory(inv: Inventory) {
+    this.inventory = inv;
   }
 
   // what should we do when this entity is clicked?
@@ -172,18 +261,19 @@ export class Entity {
 
 // types of plants!
 enum PLANT_TYPE {
-  LIFESEED = "LIFESEED"
+  LIFEBUD = "LIFEBUD"
 }
 
 // Plant item
 class Plant extends Entity {
   private type: PLANT_TYPE;
 
-  constructor(type: PLANT_TYPE) {
-    super();
+  constructor(type: PLANT_TYPE, position?: Position) {
+    super(position);
+    console.log("Plant of type " + type);
     switch (type) {
-      case PLANT_TYPE.LIFESEED:
-        super(undefined, undefined, ENTITY_TEXTURE.PLANT_LIFESEED);
+      case PLANT_TYPE.LIFEBUD:
+        this.setTexture(ENTITY_TEXTURE.PLANT_LIFEBUD);
         break;
     }
     this.type = type;
@@ -197,6 +287,20 @@ class Plant extends Entity {
   public onClick = () => {
     super.onClick();
     console.log("A " + this.getType() + " was clicked!");
+
+    // what kind of plant has the user clicked?
+    switch (this.getType()) {
+      case PLANT_TYPE.LIFEBUD:
+        currentGame.getCurrentRoom().removeEntity(this);
+        currentGame
+          .getCurrentPlayer()
+          .getInventory()
+          .addItem(new Item("Lifeseed", 1));
+        break;
+    }
+
+    // TODO: pick up item and place into inventory
+    render(); // make sure the user sees our changes
   };
 }
 
@@ -206,30 +310,37 @@ class ItemEntity extends Entity {
 
   constructor(position?: Position) {
     super(position);
+    console.log("This is an ItemEntity");
   }
 }
 
 // Player class
+// even though this is an Entity, it isn't actually rendered in the world! Position is irrelevant.
 class Player extends Entity {
   private name: string;
-  private selectedTile: TILE_TYPE;
+  private selectedItem: Item;
 
   constructor(name: string, position?: Position, inventoryItems?: Item[]) {
     super(position, inventoryItems);
-
+    console.log("This was the player!\nName: " + name);
     this.name = name;
-    this.selectedTile = TILE_TYPE.STONE;
+
+    // initialize inventory
+    let defaultHands = new KeyItem("Hands", 1);
+    this.getInventory().addItem(defaultHands);
+    this.selectedItem = defaultHands; // this represents nothing
   }
 
   // returns the selected tile type
-  getSelectedTile(): TILE_TYPE {
-    return this.selectedTile;
+  getSelectedItem(): Item {
+    return this.selectedItem;
   }
 
   // sets the selected tile type
-  setSelectedTile(tile: TILE_TYPE) {
-    console.log("Player's selected tile set to " + tile);
-    this.selectedTile = tile;
+  setSelectedItem(item: Item) {
+    console.log("Player's selected item set to " + item.getName());
+    this.selectedItem = item;
+    render(); // make sure the user sees it!
   }
 
   // returns the player's name
@@ -248,17 +359,36 @@ class Inventory {
   private items: Item[];
   private capacity: number;
 
-  constructor(items?: Item[]) {
+  constructor(items?: Item[], capacity?: number) {
+    console.log("Generating a new inventory with items " + items);
     if (items != undefined) {
       this.items = items;
     } else {
       this.items = [];
     }
+
+    if (capacity != undefined) {
+      this.capacity = capacity;
+    } else {
+      this.capacity = 3; // default inventory size is 3!
+    }
   }
 
   // insert an item into the inventory
-  addItem(item: Item): string {
-    return "TODO: add items to inventories";
+  // boolean represents success!
+  addItem(item: Item): boolean {
+    if (this.items.length < this.capacity) {
+      this.items.push(item);
+      return true;
+    } else {
+      return false;
+    }
+    // TODO: make sure we don't exceed capacity
+  }
+
+  // returns array of contained items
+  getContents(): Item[] {
+    return this.items;
   }
 }
 
@@ -318,6 +448,14 @@ class Room {
     return this.entities;
   }
 
+  // removes a specific entity from the room
+  removeEntity(entity: Entity) {
+    var index = this.getEntities().indexOf(entity);
+    if (index > -1) {
+      this.entities.splice(index, 1);
+    }
+  }
+
   // sets a specific file and checks to make sure its position is valid
   setTile(locX: number, locY: number, tile: Tile) {
     if (locX < this.sizeX && locX >= 0 && locY < this.sizeY && locY >= 0) {
@@ -343,8 +481,8 @@ class Room {
   }
 
   // returns the size of the room
-  getRoomSize() {
-    return this.sizeX, this.sizeY;
+  getRoomSize(): number[] {
+    return [this.sizeX, this.sizeY];
   }
 }
 
@@ -354,27 +492,31 @@ interface Position {
   y: number;
 }
 
-// INITIALIZE UI
-let waterButton = document.getElementById("waterButton");
-let stoneButton = document.getElementById("stoneButton");
-
-waterButton.onclick = function() {
-  currentGame.getCurrentPlayer().setSelectedTile(TILE_TYPE.WATER);
-};
-
-stoneButton.onclick = function() {
-  currentGame.getCurrentPlayer().setSelectedTile(TILE_TYPE.STONE);
-};
-
 // INITIALIZE GAME
 
 let defaultRoom = new Room(ROOM_TYPE.BASIC, 16, 16);
 let defaultPlayer = new Player("Farmer");
 
-let defaultLifeseed = new Plant(PLANT_TYPE.LIFESEED);
-defaultRoom.addEntity(defaultLifeseed);
+let defaultLifebud = new Plant(
+  PLANT_TYPE.LIFEBUD,
+  getRandomPositionInRoom(defaultRoom)
+);
+defaultRoom.addEntity(defaultLifebud);
 // this will contain everything relevant to the current game
 currentGame = new Game(defaultRoom, GAME_STATE.INITIALIZE, defaultPlayer);
 
 // we keep the rendering code separate so that it can easily be changed or reworked
+// render the game after 2 seconds to make sure the basic stuff is present
 setTimeout(render, 2000);
+
+function getRandomPositionInRoom(room: Room): Position {
+  let xPos = getRandomIntInclusive(0, room.getRoomSize()[0] - 1);
+  let yPos = getRandomIntInclusive(0, room.getRoomSize()[1] - 1);
+
+  console.log("Random position generated: " + xPos + " " + yPos);
+  return { x: xPos, y: yPos };
+}
+
+setTimeout(function() {
+  currentGame.setCurrentState(GAME_STATE.GAMEPLAY);
+}, 2000);

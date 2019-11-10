@@ -10,7 +10,7 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin([
       {
-        from: "src/assets",
+        from: path.join(__dirname, "src", "assets"),
         to: "assets"
       }
     ]),
