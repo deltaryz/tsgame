@@ -4,6 +4,8 @@
 
 import * as PIXI from "pixi.js";
 import { currentGame } from "./game";
+import { Entity } from "./game";
+import { ENTITY_TEXTURE } from "./game";
 export let ready = false;
 
 export const app = new PIXI.Application({
@@ -16,6 +18,8 @@ app.loader
   .add("assets/dirt.png")
   .add("assets/stone.png")
   .add("assets/water.png")
+  .add("assets/player.png")
+  .add("assets/lifeseed.png")
   .load(setup);
 
 function setup() {
@@ -30,6 +34,9 @@ export function render() {
     while (app.stage.children[0]) {
       app.stage.removeChild(app.stage.children[0]);
     } // remove all existing objects
+
+    // RENDER MAP
+
     let currentMap = currentGame.getCurrentRoom().getTileMap();
 
     for (let xStep = 0; xStep < currentMap.length; xStep++) {
@@ -62,5 +69,30 @@ export function render() {
         app.stage.addChild(currentTile);
       }
     }
+
+    // RENDER ENTITIES
+    let currentEntities = currentGame.getCurrentRoom().getEntities();
+
+    currentEntities.forEach(function(currentEntity) {
+      let currentEntitySprite: PIXI.Sprite;
+      switch (currentEntity.getTexture()) {
+        case ENTITY_TEXTURE.PLANT_LIFESEED:
+          currentEntitySprite = new PIXI.Sprite(
+            app.loader.resources["assets/lifeseed.png"].texture
+          );
+          break;
+
+        default:
+          currentEntitySprite = new PIXI.Sprite(
+            app.loader.resources["assets/player.png"].texture
+          );
+          break;
+      }
+      currentEntitySprite.x = (currentEntity.getPosition().x + 1) * 16 - 16;
+      currentEntitySprite.y = (currentEntity.getPosition().y + 1) * 16 - 16;
+      currentEntitySprite.interactive = true; // tiles should be clickable!
+      currentEntitySprite.on("mousedown", currentEntity.onClick);
+      app.stage.addChild(currentEntitySprite);
+    });
   }
 }

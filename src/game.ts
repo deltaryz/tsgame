@@ -11,14 +11,14 @@ export let currentGame: Game; // this will be used to reference anything relatin
 // keeps track of game state
 class Game {
   private currentRoom: Room;
-  private currentState: GameState;
+  private currentState: GAME_STATE;
   private currentPlayer: Player;
 
   // we initialize each of these components separately from the gamestate initialization
   // this makes it easier to swap them on the fly!
   constructor(
     currentRoom: Room,
-    currentState: GameState,
+    currentState: GAME_STATE,
     currentPlayer: Player
   ) {
     this.currentRoom = currentRoom;
@@ -38,12 +38,12 @@ class Game {
   }
 
   // returns the current GameState
-  getCurrentState(): GameState {
+  getCurrentState(): GAME_STATE {
     return this.currentState;
   }
 
   // sets the current GameState
-  setCurrentState(newState: GameState) {
+  setCurrentState(newState: GAME_STATE) {
     console.log("Setting game state to to " + newState);
     this.currentState = newState;
   }
@@ -61,7 +61,7 @@ class Game {
 }
 
 // represents what state the game is currently in
-enum GameState {
+enum GAME_STATE {
   INITIALIZE = "INITIALIZE",
   MENU = "MENU",
   GAMEPLAY = "GAMEPLAY"
@@ -93,7 +93,7 @@ class Item {
 }
 
 // represents which types of tile can exist
-enum TileType {
+enum TILE_TYPE {
   DIRT = "DIRT",
   STONE = "STONE",
   WATER = "WATER"
@@ -101,19 +101,19 @@ enum TileType {
 
 // tiles occupy single coordinates of world space
 class Tile {
-  private type: TileType;
+  private type: TILE_TYPE;
 
-  constructor(type: TileType) {
+  constructor(type: TILE_TYPE) {
     this.type = type;
   }
 
   // returns the type of tile this is
-  getType(): TileType {
+  getType(): TILE_TYPE {
     return this.type;
   }
 
   // changes the type of the tile
-  setType(type: TileType) {
+  setType(type: TILE_TYPE) {
     this.type = type;
   }
 
@@ -124,19 +124,80 @@ class Tile {
   };
 }
 
+// textures for entities!
+export enum ENTITY_TEXTURE {
+  PLANT_LIFESEED = "PLANT_LIFESEED"
+}
+
 // Entity class
 // Any object in the world that is not a tile
-class Entity {
+export class Entity {
   private inventory: Inventory; // all entities can have inventories
   private position: Position;
+  private texture: ENTITY_TEXTURE;
 
-  constructor(position?: Position, inventoryItems?: Item[]) {
-    if (!position == undefined) {
+  constructor(
+    position?: Position,
+    inventoryItems?: Item[],
+    texture?: ENTITY_TEXTURE
+  ) {
+    if (position != undefined) {
       this.position = position;
+    } else {
+      this.position = { x: 0, y: 0 };
     }
+
+    if (texture != undefined) this.texture = texture;
 
     this.inventory = new Inventory(inventoryItems);
   }
+
+  // get position of the entity
+  getPosition(): Position {
+    return this.position;
+  }
+
+  // get the selected texture of an entity
+  getTexture(): ENTITY_TEXTURE {
+    return this.texture;
+  }
+
+  // what should we do when this entity is clicked?
+  // this should be overridden by extending classes
+  // override with onClick = () => { ... }
+  public onClick() {
+    console.log("An entity was clicked!");
+  }
+}
+
+// types of plants!
+enum PLANT_TYPE {
+  LIFESEED = "LIFESEED"
+}
+
+// Plant item
+class Plant extends Entity {
+  private type: PLANT_TYPE;
+
+  constructor(type: PLANT_TYPE) {
+    super();
+    switch (type) {
+      case PLANT_TYPE.LIFESEED:
+        super(undefined, undefined, ENTITY_TEXTURE.PLANT_LIFESEED);
+        break;
+    }
+    this.type = type;
+  }
+
+  // returns type of plant this is
+  getType(): PLANT_TYPE {
+    return this.type;
+  }
+
+  public onClick = () => {
+    super.onClick();
+    console.log("A " + this.getType() + " was clicked!");
+  };
 }
 
 // Items in the world
@@ -151,22 +212,22 @@ class ItemEntity extends Entity {
 // Player class
 class Player extends Entity {
   private name: string;
-  private selectedTile: TileType;
+  private selectedTile: TILE_TYPE;
 
   constructor(name: string, position?: Position, inventoryItems?: Item[]) {
     super(position, inventoryItems);
 
     this.name = name;
-    this.selectedTile = TileType.STONE;
+    this.selectedTile = TILE_TYPE.STONE;
   }
 
   // returns the selected tile type
-  getSelectedTile(): TileType {
+  getSelectedTile(): TILE_TYPE {
     return this.selectedTile;
   }
 
   // sets the selected tile type
-  setSelectedTile(tile: TileType) {
+  setSelectedTile(tile: TILE_TYPE) {
     console.log("Player's selected tile set to " + tile);
     this.selectedTile = tile;
   }
@@ -202,7 +263,7 @@ class Inventory {
 }
 
 // Different room types will generate different terrain
-enum RoomType {
+enum ROOM_TYPE {
   BASIC = "BASIC"
 }
 
@@ -214,9 +275,10 @@ class Room {
   private sizeY: number;
 
   // generate the room!
-  constructor(type: RoomType, sizeX: number, sizeY: number) {
+  constructor(type: ROOM_TYPE, sizeX: number, sizeY: number) {
     this.sizeX = sizeX;
     this.sizeY = sizeY;
+    this.entities = [];
 
     console.log(
       "Now generating room type " +
@@ -229,7 +291,7 @@ class Room {
 
     // which room type are we going to generate?
     switch (type) {
-      case RoomType.BASIC:
+      case ROOM_TYPE.BASIC:
         // this will generate nothing but dirt
 
         this.tiles = []; // set up each row!
@@ -239,7 +301,7 @@ class Room {
             // these kinds of for loops are hell
 
             // create a new dirt tile
-            this.setTile(xStep, yStep, new Tile(TileType.DIRT)); // assign that tile to a place in the world map
+            this.setTile(xStep, yStep, new Tile(TILE_TYPE.DIRT)); // assign that tile to a place in the world map
           }
         }
         break;
@@ -249,6 +311,11 @@ class Room {
   // inserts an entity into the room
   addEntity(entity: Entity) {
     this.entities.push(entity);
+  }
+
+  // returns list of all entities
+  getEntities(): Entity[] {
+    return this.entities;
   }
 
   // sets a specific file and checks to make sure its position is valid
@@ -274,6 +341,11 @@ class Room {
   getTileMap(): Tile[][] {
     return this.tiles;
   }
+
+  // returns the size of the room
+  getRoomSize() {
+    return this.sizeX, this.sizeY;
+  }
 }
 
 // location on map
@@ -287,19 +359,22 @@ let waterButton = document.getElementById("waterButton");
 let stoneButton = document.getElementById("stoneButton");
 
 waterButton.onclick = function() {
-  currentGame.getCurrentPlayer().setSelectedTile(TileType.WATER);
+  currentGame.getCurrentPlayer().setSelectedTile(TILE_TYPE.WATER);
 };
 
 stoneButton.onclick = function() {
-  currentGame.getCurrentPlayer().setSelectedTile(TileType.STONE);
+  currentGame.getCurrentPlayer().setSelectedTile(TILE_TYPE.STONE);
 };
 
 // INITIALIZE GAME
 
-let defaultRoom = new Room(RoomType.BASIC, 16, 16);
-let defaultPlayer = new Player("Farmer", { x: 0, y: 0 });
+let defaultRoom = new Room(ROOM_TYPE.BASIC, 16, 16);
+let defaultPlayer = new Player("Farmer");
+
+let defaultLifeseed = new Plant(PLANT_TYPE.LIFESEED);
+defaultRoom.addEntity(defaultLifeseed);
 // this will contain everything relevant to the current game
-currentGame = new Game(defaultRoom, GameState.INITIALIZE, defaultPlayer);
+currentGame = new Game(defaultRoom, GAME_STATE.INITIALIZE, defaultPlayer);
 
 // we keep the rendering code separate so that it can easily be changed or reworked
 setTimeout(render, 2000);
