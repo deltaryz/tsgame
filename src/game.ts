@@ -91,19 +91,28 @@ export interface Position {
 let defaultRoom = new room.Room(room.ROOM_TYPE.BASIC, 16, 16);
 let defaultPlayer = new entity.Player("Farmer");
 
+// we set up a placement queue so that nothing is generated on top of anything else
+let entityPlacementQueue: entity.Entity[] = [];
+
 // spawn 1 lifebud to get the game started
-let defaultLifebud = new entity.Entity(
-  entity.ENTITY_TYPE.PLANT_LIFEBUD,
-  getRandomPositionInRoom(defaultRoom)
-);
-defaultRoom.addEntity(defaultLifebud);
+let defaultLifebud = new entity.Entity(entity.ENTITY_TYPE.PLANT_LIFEBUD);
+entityPlacementQueue.push(defaultLifebud);
 
 // spawn 1 stone just so it's there
-let defaultStone = new entity.Entity(
-  entity.ENTITY_TYPE.OBJECT_STONE,
-  getRandomPositionInRoom(defaultRoom)
-);
-defaultRoom.addEntity(defaultStone);
+let defaultStone = new entity.Entity(entity.ENTITY_TYPE.OBJECT_STONE);
+entityPlacementQueue.push(defaultStone);
+
+let occupiedPositions: Position[] = []; // keep track of which positions have been used
+entityPlacementQueue.forEach((entity: entity.Entity) => {
+  let currentPosition = getRandomPositionInRoom(defaultRoom);
+  while (occupiedPositions.includes(currentPosition)) {
+    // loop this until position is unique
+    currentPosition = getRandomPositionInRoom(defaultRoom);
+  }
+  occupiedPositions.push(currentPosition);
+  entity.setPosition(currentPosition);
+  defaultRoom.addEntity(entity);
+});
 
 // this will contain everything relevant to the current game
 currentGame = new Game(defaultRoom, GAME_STATE.INITIALIZE, defaultPlayer);
