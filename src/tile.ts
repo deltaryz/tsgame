@@ -32,10 +32,4 @@ export class Tile {
   setType(type: TILE_TYPE) {
     this.type = type;
   }
-
-  // what should we do when the tile is clicked?
-  onClick = () => {
-    // update the screen to represent any changes
-    render();
-  };
 }

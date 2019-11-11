@@ -30,14 +30,16 @@ export enum ITEM_TYPE {
 itemRegistry
   .set(ITEM_TYPE.HANDS, {
     name: "Hands",
-    use: () => {
+    use: (entityTarget?: entity.Entity, tileTarget?: tile.Tile) => {
+      if (entityTarget != undefined) entityTarget.onClick(); // hands will directly call the entity's onClick
+      if (tileTarget != undefined) console.log(tileTarget.getType());
       return true;
     },
-    keyItem: false
+    keyItem: true
   })
   .set(ITEM_TYPE.LIFESEED, {
     name: "Lifeseed",
-    use: () => {
+    use: (entityTarget?: entity.Entity, tileTarget?: tile.Tile) => {
       return true;
     },
     keyItem: false
@@ -98,8 +100,12 @@ export class Item {
   }
 
   // what should we do when this item is used?
-  public useItem(entityTarget?: entity.Entity, tileTarget?: tile.Tile) {
-    itemRegistry.get(this.type).use(entityTarget, tileTarget);
+  // returns whether the action was successful
+  public useItem(
+    entityTarget?: entity.Entity,
+    tileTarget?: tile.Tile
+  ): boolean {
+    return itemRegistry.get(this.type).use(entityTarget, tileTarget);
   }
 }
 

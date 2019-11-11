@@ -54,7 +54,7 @@ export function render() {
       .getInventory()
       .getContents()
       .forEach(function(item: item.Item) {
-        console.log("Creating button for item " + item.getDisplayName());
+        //sconsole.log("Creating button for item " + item.getDisplayName());
         let itemButton = document.createElement("BUTTON");
         itemButton.innerHTML =
           item.getDisplayName() + " x " + item.getQuantity();
@@ -101,7 +101,16 @@ export function render() {
         currentTile.x = (xStep + 1) * 16 - 16;
         currentTile.y = (yStep + 1) * 16 - 16;
         currentTile.interactive = true; // tiles should be clickable!
-        currentTile.on("mousedown", currentMap[xStep][yStep].onClick);
+
+        let mouseDown = function() {
+          dismissTooltip();
+          currentGame
+            .getCurrentPlayer()
+            .getSelectedItem()
+            .useItem(undefined, currentMap[xStep][yStep]);
+        };
+
+        currentTile.on("mousedown", mouseDown);
         app.stage.addChild(currentTile);
       }
     }
@@ -110,8 +119,9 @@ export function render() {
     let currentEntities = currentGame.getCurrentRoom().getEntities();
 
     currentEntities.forEach(function(currentEntity: entity.Entity) {
+      let currentEntityDisplayName = currentEntity.getDisplayName();
       let currentEntitySprite: PIXI.Sprite;
-      switch (currentEntity.getTexture()) {
+      switch (currentEntity.getType()) {
         case entity.ENTITY_TYPE.PLANT_LIFEBUD:
           currentEntitySprite = new PIXI.Sprite(
             app.loader.resources["assets/lifebud.png"].texture
@@ -133,8 +143,36 @@ export function render() {
       currentEntitySprite.x = (currentEntity.getPosition().x + 1) * 16 - 16;
       currentEntitySprite.y = (currentEntity.getPosition().y + 1) * 16 - 16;
       currentEntitySprite.interactive = true; // tiles should be clickable!
-      currentEntitySprite.on("mousedown", currentEntity.onClick);
+
+      let mouseDown = function() {
+        dismissTooltip();
+        currentGame
+          .getCurrentPlayer()
+          .getSelectedItem()
+          .useItem(currentEntity);
+      };
+
+      currentEntitySprite.on("mousedown", mouseDown); // pass through to its click function
+      currentEntitySprite.on("mouseover", () => {
+        // what do we do when the mouse is over this?
+        displayTooltip(currentEntityDisplayName);
+      });
+      currentEntitySprite.on("mouseout", () => {
+        // what do we do when the mouse leaves?
+        dismissTooltip();
+      });
+
       app.stage.addChild(currentEntitySprite);
     });
   }
+}
+
+function displayTooltip(text: string) {
+  console.log("Mouse moved over " + text);
+  //TODO: display tooltip
+}
+
+function dismissTooltip() {
+  console.log("Mouse left");
+  // TODO: dismiss tooltip
 }

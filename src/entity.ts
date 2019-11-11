@@ -7,23 +7,83 @@ import * as room from "./room"; // everything room related!
 
 // Entity class
 
-// textures for entities!
+// this contains metadata of what an entity is/does
+export interface EntityData {
+  name: string;
+  onClick(entity: Entity): void; // what happens when we click the entity?
+  metaType: ENTITY_META_TYPE;
+}
+
+// Entity registry
+// This matches the ENTITY_TYPE with EntityData values
+// use entityRegistry.get(ENTITY_TYPE) to access entities!
+export let entityRegistry = new Map<ENTITY_TYPE, EntityData>();
+
+// types of entities!
 export enum ENTITY_TYPE {
+  PLAYER = "PLAYER", // this one is special
+  ITEM_ENTITY = "ITEM_ENTITY",
   PLANT_LIFEBUD = "PLANT_LIFEBUD",
   OBJECT_STONE = "OBJECT_STONE"
 }
+
+// these are used for more generic identification
+export enum ENTITY_META_TYPE {
+  DEFAULT = "DEFAULT", // nothing specific
+  PLANT = "PLANT",
+  OBJECT = "OBJECT"
+}
+
+// Here we define entity metadata and behavior
+entityRegistry
+  .set(ENTITY_TYPE.PLAYER, {
+    name: "Player",
+    onClick: (entity: Entity) => {
+      console.log("how did you even activate this??? (player was clicked)"); // this should theoretically never get called
+    },
+    metaType: ENTITY_META_TYPE.DEFAULT
+  })
+  .set(ENTITY_TYPE.ITEM_ENTITY, {
+    name: "Item",
+    onClick: (entity: Entity) => {
+      // TODO: pick up items
+    },
+    metaType: ENTITY_META_TYPE.DEFAULT
+  })
+  .set(ENTITY_TYPE.PLANT_LIFEBUD, {
+    name: "Lifebud",
+    onClick: (entity: Entity) => {
+      console.log("A " + entity.getType() + " was clicked!");
+
+      game.currentGame.getCurrentRoom().removeEntity(entity);
+      game.currentGame
+        .getCurrentPlayer()
+        .getInventory()
+        .addItem(new item.Item("Lifeseed", 1, item.ITEM_TYPE.LIFESEED));
+    },
+    metaType: ENTITY_META_TYPE.PLANT
+  })
+  .set(ENTITY_TYPE.OBJECT_STONE, {
+    name: "Stone",
+    onClick: (entity: Entity) => {
+      // TODO: stone interaction
+    },
+    metaType: ENTITY_META_TYPE.OBJECT
+  });
 
 // Entity class
 // Any object in the world that is not a tile
 export class Entity {
   private inventory: item.Inventory; // all entities can have inventories
   private position: game.Position;
-  private texture: ENTITY_TYPE;
+  private type: ENTITY_TYPE;
+  private displayName: string;
 
   constructor(
+    type: ENTITY_TYPE,
     position?: game.Position,
     inventoryItems?: item.Item[],
-    texture?: ENTITY_TYPE
+    name?: string
   ) {
     let outputPosX: number = 0; // assume 0 if nothign else is given
     let outputPosY: number = 0;
@@ -38,8 +98,8 @@ export class Entity {
         outputPosY +
         "\ninventoryItems: " +
         inventoryItems +
-        "\nTexture: " +
-        texture
+        "\nType: " +
+        type
     );
 
     if (position != undefined) {
@@ -48,7 +108,13 @@ export class Entity {
       this.position = { x: 0, y: 0 };
     }
 
-    if (texture != undefined) this.texture = texture;
+    this.type = type;
+
+    if (name != undefined) {
+      this.displayName = name;
+    } else {
+      this.displayName = type;
+    }
 
     this.inventory = new item.Inventory(inventoryItems);
   }
@@ -64,13 +130,13 @@ export class Entity {
   }
 
   // get the selected texture of an entity
-  getTexture(): ENTITY_TYPE {
-    return this.texture;
+  getType(): ENTITY_TYPE {
+    return this.type;
   }
 
   // set the visible texture of an entity
-  setTexture(texture: ENTITY_TYPE) {
-    this.texture = texture;
+  setType(texture: ENTITY_TYPE) {
+    this.type = texture;
   }
 
   // returns the entity's inventory
@@ -83,67 +149,22 @@ export class Entity {
     this.inventory = inv;
   }
 
+  // returns display name
+  getDisplayName(): string {
+    return this.displayName;
+  }
+
+  // sets display name
+  setDisplayName(name: string) {
+    this.displayName = name;
+  }
+
   // what should we do when this entity is clicked?
-  // this should be overridden by extending classes
-  // override with onClick = () => { ... }
-  public onClick() {
-    console.log("An entity was clicked!");
-  }
-}
-
-// types of plants!
-export enum PLANT_TYPE {
-  LIFEBUD = "LIFEBUD"
-}
-
-// Plant item
-export class Plant extends Entity {
-  private type: PLANT_TYPE;
-
-  constructor(type: PLANT_TYPE, position?: game.Position) {
-    super(position);
-    console.log("Plant of type " + type);
-    switch (type) {
-      case PLANT_TYPE.LIFEBUD:
-        this.setTexture(ENTITY_TYPE.PLANT_LIFEBUD);
-        break;
-    }
-    this.type = type;
-  }
-
-  // returns type of plant this is
-  getType(): PLANT_TYPE {
-    return this.type;
-  }
-
   public onClick = () => {
-    super.onClick();
-    console.log("A " + this.getType() + " was clicked!");
-
-    // what kind of plant has the user clicked?
-    switch (this.getType()) {
-      case PLANT_TYPE.LIFEBUD:
-        game.currentGame.getCurrentRoom().removeEntity(this);
-        game.currentGame
-          .getCurrentPlayer()
-          .getInventory()
-          .addItem(new item.Item("Lifeseed", 1, item.ITEM_TYPE.LIFESEED));
-        break;
-    }
-
-    // TODO: pick up item and place into inventory
-    render(); // make sure the user sees our changes
+    console.log("An entity was clicked!");
+    entityRegistry.get(this.getType()).onClick(this);
+    render();
   };
-}
-
-// Items in the world
-export class ItemEntity extends Entity {
-  private item: item.Item;
-
-  constructor(position?: game.Position) {
-    super(position);
-    console.log("This is an ItemEntity");
-  }
 }
 
 // Player class
@@ -157,7 +178,7 @@ export class Player extends Entity {
     position?: game.Position,
     inventoryItems?: item.Item[]
   ) {
-    super(position, inventoryItems);
+    super(ENTITY_TYPE.PLAYER, position, inventoryItems);
     console.log("This was the player!\nName: " + name);
     this.name = name;
 

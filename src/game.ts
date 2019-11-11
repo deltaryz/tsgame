@@ -91,8 +91,8 @@ export interface Position {
 let defaultRoom = new room.Room(room.ROOM_TYPE.BASIC, 16, 16);
 let defaultPlayer = new entity.Player("Farmer");
 
-let defaultLifebud = new entity.Plant(
-  entity.PLANT_TYPE.LIFEBUD,
+let defaultLifebud = new entity.Entity(
+  entity.ENTITY_TYPE.PLANT_LIFEBUD,
   getRandomPositionInRoom(defaultRoom)
 );
 defaultRoom.addEntity(defaultLifebud);
