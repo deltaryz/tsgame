@@ -103,10 +103,14 @@ export function render() {
         currentTile.interactive = true; // tiles should be clickable!
 
         let mouseDown = function() {
-          currentGame
+          // use the player's held item to use this target
+          // if this was successful, result will be true
+          let result = currentGame
             .getCurrentPlayer()
             .getSelectedItem()
             .useItem(undefined, currentMap[xStep][yStep]);
+
+          if (!result) displayToastNotification("That didn't work.");
         };
 
         currentTile.on("mousedown", mouseDown);
@@ -144,11 +148,15 @@ export function render() {
       currentEntitySprite.interactive = true; // tiles should be clickable!
 
       let mouseDown = function() {
-        dismissTooltip();
-        currentGame
+        dismissTooltip(); // since mouseout doesn't get triggered when you click it
+        // use the player's held item to use this target
+        // if this was successful, result will be true
+        let result = currentGame
           .getCurrentPlayer()
           .getSelectedItem()
           .useItem(currentEntity);
+
+        if (!result) displayToastNotification("That didn't work.");
       };
 
       currentEntitySprite.on("mousedown", mouseDown); // pass through to its click function
@@ -166,12 +174,20 @@ export function render() {
   }
 }
 
+// show a tooltip on the screen (only one at a time!)
 function displayTooltip(text: string) {
   console.log("Mouse moved over " + text);
   //TODO: display tooltip
 }
 
+// dismiss the visible tooltip (only one at a time!)
 function dismissTooltip() {
   console.log("Mouse left");
   // TODO: dismiss tooltip
+}
+
+// shows a toast notification
+function displayToastNotification(text: string, duration?: number) {
+  console.log(text);
+  // TODO: show toast notification
 }

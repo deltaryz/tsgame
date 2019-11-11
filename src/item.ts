@@ -40,7 +40,11 @@ itemRegistry
   .set(ITEM_TYPE.LIFESEED, {
     name: "Lifeseed",
     use: (entityTarget?: entity.Entity, tileTarget?: tile.Tile) => {
-      return true;
+      if (tileTarget != undefined) {
+        return true;
+      } else {
+        return false;
+      }
     },
     keyItem: false
   });
