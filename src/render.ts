@@ -103,7 +103,6 @@ export function render() {
         currentTile.interactive = true; // tiles should be clickable!
 
         let mouseDown = function() {
-          dismissTooltip();
           currentGame
             .getCurrentPlayer()
             .getSelectedItem()

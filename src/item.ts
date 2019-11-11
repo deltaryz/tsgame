@@ -32,7 +32,7 @@ itemRegistry
     name: "Hands",
     use: (entityTarget?: entity.Entity, tileTarget?: tile.Tile) => {
       if (entityTarget != undefined) entityTarget.onClick(); // hands will directly call the entity's onClick
-      if (tileTarget != undefined) console.log(tileTarget.getType());
+      if (tileTarget != undefined) console.log(tileTarget.getName());
       return true;
     },
     keyItem: true
