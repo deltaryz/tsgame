@@ -91,11 +91,20 @@ export interface Position {
 let defaultRoom = new room.Room(room.ROOM_TYPE.BASIC, 16, 16);
 let defaultPlayer = new entity.Player("Farmer");
 
+// spawn 1 lifebud to get the game started
 let defaultLifebud = new entity.Entity(
   entity.ENTITY_TYPE.PLANT_LIFEBUD,
   getRandomPositionInRoom(defaultRoom)
 );
 defaultRoom.addEntity(defaultLifebud);
+
+// spawn 1 stone just so it's there
+let defaultStone = new entity.Entity(
+  entity.ENTITY_TYPE.OBJECT_STONE,
+  getRandomPositionInRoom(defaultRoom)
+);
+defaultRoom.addEntity(defaultStone);
+
 // this will contain everything relevant to the current game
 currentGame = new Game(defaultRoom, GAME_STATE.INITIALIZE, defaultPlayer);
 

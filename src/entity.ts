@@ -1,5 +1,5 @@
 // imports
-import { render } from "./render"; // keep the rendering outside the game logic
+import { render, displayToastNotification } from "./render"; // keep the rendering outside the game logic
 import * as item from "./item"; // everything item related!
 import * as game from "./game"; // everything entity related!
 import * as tile from "./tile"; // everything tile related!
@@ -10,7 +10,7 @@ import * as room from "./room"; // everything room related!
 // this contains metadata of what an entity is/does
 export interface EntityData {
   name: string;
-  onClick(entity: Entity): void; // what happens when we click the entity?
+  onClick(entity: Entity): void; // what happens when we click the entity with our bare Hands x 1?
   metaType: ENTITY_META_TYPE;
 }
 
@@ -66,7 +66,7 @@ entityRegistry
   .set(ENTITY_TYPE.OBJECT_STONE, {
     name: "Stone",
     onClick: (entity: Entity) => {
-      // TODO: stone interaction
+      displayToastNotification("The rock is too heavy to move.");
     },
     metaType: ENTITY_META_TYPE.OBJECT
   });

@@ -186,8 +186,8 @@ function dismissTooltip() {
   // TODO: dismiss tooltip
 }
 
-// shows a toast notification
-function displayToastNotification(text: string, duration?: number) {
+// shows a toast notification (this can be called from other files!)
+export function displayToastNotification(text: string, duration?: number) {
   console.log(text);
   // TODO: show toast notification
 }
