@@ -10,7 +10,7 @@ import * as room from "./room"; // everything room related!
 export let ready = false; // make sure we don't render anything before that has been initialized
 
 let heldItemDisplay = document.getElementById("selectedItemDisplay");
-
+let temporaryToastDiv = document.getElementById("temporaryToast"); // TODO: make toast less temporary
 let inventoryButtonsDiv = document.getElementById("inventoryButtons");
 inventoryButtonsDiv.innerHTML = "Please wait while the game loads!";
 
@@ -187,7 +187,14 @@ function dismissTooltip() {
 }
 
 // shows a toast notification (this can be called from other files!)
+// we assume 2000ms if a duration is not specified
 export function displayToastNotification(text: string, duration?: number) {
-  console.log(text);
-  // TODO: show toast notification
+  // TODO: make toast less temporary
+  temporaryToastDiv.innerHTML = text;
+  let actualDuration = 2000;
+  if (duration != undefined) actualDuration = duration;
+
+  /*setTimeout(() => {
+    temporaryToastDiv.innerHTML = "";
+  }, actualDuration);*/ //TODO: fix timeout
 }

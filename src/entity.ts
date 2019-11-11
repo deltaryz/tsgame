@@ -1,5 +1,5 @@
 // imports
-import { render, displayToastNotification } from "./render"; // keep the rendering outside the game logic
+import * as render from "./render"; // keep the rendering outside the game logic
 import * as item from "./item"; // everything item related!
 import * as game from "./game"; // everything entity related!
 import * as tile from "./tile"; // everything tile related!
@@ -39,7 +39,9 @@ entityRegistry
   .set(ENTITY_TYPE.PLAYER, {
     name: "Player",
     onClick: (entity: Entity) => {
-      console.log("how did you even activate this??? (player was clicked)"); // this should theoretically never get called
+      render.displayToastNotification(
+        "how did you even activate this??? (player was clicked)"
+      ); // this should theoretically never get called
     },
     metaType: ENTITY_META_TYPE.DEFAULT
   })
@@ -53,7 +55,9 @@ entityRegistry
   .set(ENTITY_TYPE.PLANT_LIFEBUD, {
     name: "Lifebud",
     onClick: (entity: Entity) => {
-      console.log("A " + entity.getType() + " was clicked!");
+      render.displayToastNotification(
+        "You harvested the withering Lifebud's only seed."
+      );
 
       game.currentGame.getCurrentRoom().removeEntity(entity);
       game.currentGame
@@ -66,7 +70,7 @@ entityRegistry
   .set(ENTITY_TYPE.OBJECT_STONE, {
     name: "Stone",
     onClick: (entity: Entity) => {
-      displayToastNotification("The rock is too heavy to move.");
+      render.displayToastNotification("The rock is too heavy to move.");
     },
     metaType: ENTITY_META_TYPE.OBJECT
   });
@@ -163,7 +167,7 @@ export class Entity {
   public onClick = () => {
     console.log("An entity was clicked!");
     entityRegistry.get(this.getType()).onClick(this);
-    render();
+    render.render();
   };
 }
 
@@ -197,7 +201,7 @@ export class Player extends Entity {
   setSelectedItem(item: item.Item) {
     console.log("Player's selected item set to " + item.getDisplayName());
     this.selectedItem = item;
-    render(); // make sure the user sees it!
+    render.render(); // make sure the user sees it!
   }
 
   // returns the player's name

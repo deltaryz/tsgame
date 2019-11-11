@@ -1,5 +1,5 @@
 // imports
-import { render } from "./render"; // keep the rendering outside the game logic
+import * as render from "./render"; // keep the rendering outside the game logic
 import * as game from "./game"; // everything item related!
 import * as entity from "./entity"; // everything entity related!
 import * as tile from "./tile"; // everything tile related!
@@ -32,7 +32,8 @@ itemRegistry
     name: "Hands",
     use: (entityTarget?: entity.Entity, tileTarget?: tile.Tile) => {
       if (entityTarget != undefined) entityTarget.onClick(); // hands will directly call the entity's onClick
-      if (tileTarget != undefined) console.log(tileTarget.getName());
+      if (tileTarget != undefined)
+        render.displayToastNotification("This is: " + tileTarget.getName());
       return true;
     },
     keyItem: true

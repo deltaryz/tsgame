@@ -5,7 +5,7 @@
 // made with typescript
 
 // imports
-import { render } from "./render"; // keep the rendering outside the game logic
+import * as render from "./render"; // keep the rendering outside the game logic
 import * as item from "./item"; // everything item related!
 import * as entity from "./entity"; // everything entity related!
 import * as tile from "./tile"; // everything tile related!
@@ -110,7 +110,7 @@ currentGame = new Game(defaultRoom, GAME_STATE.INITIALIZE, defaultPlayer);
 
 // we keep the rendering code separate so that it can easily be changed or reworked
 // render the game after 2 seconds to make sure the basic stuff is present
-setTimeout(render, 2000);
+setTimeout(render.render, 2000);
 
 function getRandomPositionInRoom(room: room.Room): Position {
   let xPos = getRandomIntInclusive(0, room.getRoomSize()[0] - 1);

@@ -1,5 +1,5 @@
 // imports
-import { render } from "./render"; // keep the rendering outside the game logic
+import * as render from "./render"; // keep the rendering outside the game logic
 import * as item from "./item"; // everything item related!
 import * as game from "./game"; // everything entity related!
 import * as entity from "./entity"; // everything entity related!
