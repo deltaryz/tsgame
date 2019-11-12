@@ -46,7 +46,11 @@ export class Room {
             // these kinds of for loops are hell
 
             // create a new dirt tile
-            this.setTile(xStep, yStep, new tile.Tile(tile.TILE_TYPE.DIRT)); // assign that tile to a place in the world map
+            this.setTile(
+              xStep,
+              yStep,
+              new tile.Tile(tile.TILE_TYPE.DIRT, { x: xStep, y: yStep })
+            ); // assign that tile to a place in the world map
           }
         }
         break;
@@ -69,6 +73,11 @@ export class Room {
     if (index > -1) {
       this.entities.splice(index, 1);
     }
+  }
+
+  // returns the tile object that exists at a specific position
+  getTile(posX: number, posY: number) {
+    return this.tiles[posX][posY];
   }
 
   // sets a specific file and checks to make sure its position is valid

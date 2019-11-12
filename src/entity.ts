@@ -12,6 +12,7 @@ export interface EntityData {
   name: string;
   onClick(entity: Entity): void; // what happens when we click the entity with our bare Hands x 1?
   metaType: ENTITY_META_TYPE;
+  tick?(entity: Entity): void; // what should this entity do when the game ticks?
 }
 
 // Entity registry
@@ -55,17 +56,36 @@ entityRegistry
   .set(ENTITY_TYPE.PLANT_LIFEBUD, {
     name: "Lifebud",
     onClick: (entity: Entity) => {
-      render.displayToastNotification(
-        "You harvested the withering Lifebud's only seed."
-      );
+      if (entity.getGrowth() == 100) {
+        render.displayToastNotification(
+          "You harvested the Lifebud and obtained seeds."
+        );
 
-      game.currentGame.getCurrentRoom().removeEntity(entity);
-      game.currentGame
-        .getCurrentPlayer()
-        .getInventory()
-        .addItem(new item.Item("Lifeseed", 1, item.ITEM_TYPE.LIFESEED));
+        game.currentGame.getCurrentRoom().removeEntity(entity);
+        game.currentGame
+          .getCurrentPlayer()
+          .getInventory()
+          .createItem("Lifeseed", 3, item.ITEM_TYPE.LIFESEED);
+      } else {
+        render.displayToastNotification(
+          "This Lifebud is not ready to harvest yet. (" +
+            entity.getGrowth() +
+            "%)"
+        );
+      }
     },
-    metaType: ENTITY_META_TYPE.PLANT
+    metaType: ENTITY_META_TYPE.PLANT,
+    tick: (entity: Entity) => {
+      // this plant will grow a little every tick!
+      entity.grow(25);
+
+      if (entity.getGrowth() >= 100) {
+        // the plant is fully grown!
+        render.displayToastNotification(
+          "A " + entity.getDisplayName() + " has fully grown!"
+        );
+      }
+    }
   })
   .set(ENTITY_TYPE.OBJECT_STONE, {
     name: "Stone",
@@ -82,12 +102,14 @@ export class Entity {
   private position: game.Position;
   private type: ENTITY_TYPE;
   private displayName: string;
+  private growth: number; // only relevant for plants, defines growth percentage out of 100
 
   constructor(
     type: ENTITY_TYPE,
     position?: game.Position,
     inventoryItems?: item.Item[],
-    name?: string
+    name?: string,
+    growth?: number
   ) {
     let outputPosX: number = 0; // assume 0 if nothign else is given
     let outputPosY: number = 0;
@@ -117,10 +139,22 @@ export class Entity {
     if (name != undefined) {
       this.displayName = name;
     } else {
-      this.displayName = type;
+      this.displayName = entityRegistry.get(type).name;
     }
 
     this.inventory = new item.Inventory(inventoryItems);
+
+    if (growth != undefined) {
+      this.growth = growth;
+    } else {
+      if (entityRegistry.get(type).metaType == ENTITY_META_TYPE.PLANT) {
+        // this is some sort of plant, set growth to 0
+        this.growth = 0;
+      } else {
+        // we use -1 to represent something with no growth value
+        this.growth = -1;
+      }
+    }
   }
 
   // get position of the entity
@@ -163,6 +197,27 @@ export class Entity {
     this.displayName = name;
   }
 
+  // get growth value
+  getGrowth(): number {
+    return this.growth;
+  }
+
+  // set growth value
+  setGrowth(growth: number) {
+    this.growth = growth;
+  }
+
+  // grow by provided value
+  grow(amount: number) {
+    this.growth += amount;
+    if (this.growth >= 100) this.growth = 100;
+  }
+
+  // returns the tick function for this entity
+  getTick() {
+    return entityRegistry.get(this.type).tick;
+  }
+
   // what should we do when this entity is clicked?
   public onClick = () => {
     console.log("An entity was clicked!");
@@ -188,20 +243,38 @@ export class Player extends Entity {
 
     // initialize inventory
     let defaultHands = new item.Item("Hands", 1, item.ITEM_TYPE.HANDS);
-    this.getInventory().addItem(defaultHands);
+    this.getInventory().insertItem(defaultHands);
     this.selectedItem = defaultHands; // this represents nothing
   }
 
   // returns the selected tile type
   getSelectedItem(): item.Item {
+    // go ahead and do a check to make sure that we actually have this item!
+    if (
+      this.getInventory().getItem(this.selectedItem.getItemType()) == undefined
+    ) {
+      console.log("We don't have the item that is currently selected!");
+      // we don't!
+      this.setSelectedItem(item.ITEM_TYPE.HANDS);
+    }
     return this.selectedItem;
   }
 
-  // sets the selected tile type
-  setSelectedItem(item: item.Item) {
-    console.log("Player's selected item set to " + item.getDisplayName());
-    this.selectedItem = item;
-    render.render(); // make sure the user sees it!
+  // sets the selected item type
+  // returns false if the player doesn't have one!
+  setSelectedItem(itemType: item.ITEM_TYPE): boolean {
+    // check if we have the item
+    let item = this.getInventory().getItem(itemType);
+    if (item != undefined) {
+      // player does have this item!
+      console.log("Player's selected item set to " + item.getDisplayName());
+      this.selectedItem = item;
+      render.render(); // make sure the user sees it!
+      return true;
+    } else {
+      // we do not have this item
+      return false;
+    }
   }
 
   // returns the player's name

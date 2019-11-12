@@ -12,6 +12,7 @@ import * as tile from "./tile"; // everything tile related!
 import * as room from "./room"; // everything room related!
 
 export let currentGame: Game; // this will be used to reference anything relating to the current game state
+let tickInterval = 2000; // interval (in milliseconds) of 1 game tick
 
 // what it says on the tin
 function getRandomIntInclusive(min: number, max: number) {
@@ -25,18 +26,41 @@ class Game {
   private currentRoom: room.Room;
   private currentState: GAME_STATE;
   private currentPlayer: entity.Player;
+  private tickInterval: number;
 
   // we initialize each of these components separately from the gamestate initialization
   // this makes it easier to swap them on the fly!
   constructor(
     currentRoom: room.Room,
     currentState: GAME_STATE,
-    currentPlayer: entity.Player
+    currentPlayer: entity.Player,
+    tickInterval: number
   ) {
     console.log("Game being initialized!");
     this.currentRoom = currentRoom;
     this.currentState = currentState;
     this.currentPlayer = currentPlayer;
+    this.tickInterval = tickInterval;
+  }
+
+  // this is triggered every time the game ticks
+  tick() {
+    console.log("Tick has passed");
+
+    // trigger the tick functions of all existing entities
+    this.currentRoom.getEntities().forEach((thisEntity: entity.Entity) => {
+      let tickFunction = thisEntity.getTick();
+      if (tickFunction != undefined) tickFunction(thisEntity);
+    });
+    render.render();
+  }
+
+  // initializes tick and sets game state
+  startGame() {
+    this.currentState = GAME_STATE.GAMEPLAY;
+    setInterval(() => {
+      this.tick();
+    }, this.tickInterval);
   }
 
   // returns the current room
@@ -115,7 +139,12 @@ entityPlacementQueue.forEach((entity: entity.Entity) => {
 });
 
 // this will contain everything relevant to the current game
-currentGame = new Game(defaultRoom, GAME_STATE.INITIALIZE, defaultPlayer);
+currentGame = new Game(
+  defaultRoom,
+  GAME_STATE.INITIALIZE,
+  defaultPlayer,
+  tickInterval
+);
 
 // we keep the rendering code separate so that it can easily be changed or reworked
 // render the game after 2 seconds to make sure the basic stuff is present
@@ -129,6 +158,10 @@ function getRandomPositionInRoom(room: room.Room): Position {
   return { x: xPos, y: yPos };
 }
 
-setTimeout(function() {
-  currentGame.setCurrentState(GAME_STATE.GAMEPLAY);
-}, 2000);
+// make sure we wait for pixi to load its assets
+let waitForPixi = setInterval(() => {
+  if (render.ready == true) {
+    clearInterval(waitForPixi);
+    currentGame.startGame();
+  }
+}, 1000);

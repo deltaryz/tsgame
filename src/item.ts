@@ -42,10 +42,10 @@ itemRegistry
     name: "Lifeseed",
     use: (entityTarget?: entity.Entity, tileTarget?: tile.Tile) => {
       if (tileTarget != undefined) {
-        return true;
-      } else {
-        return false;
-      }
+          return true;
+        } else {
+          return false;
+        }
     },
     keyItem: false
   });
@@ -134,16 +134,93 @@ export class Inventory {
     }
   }
 
-  // insert an item into the inventory
+  // does this item exist in the inventory?
+  // returns the item if it exists
+  getItem(itemType: ITEM_TYPE): Item {
+    console.log(
+      "Something is checking if " + itemType + " exists in an inventory"
+    );
+
+    for (let index = 0; index < this.items.length; index++) {
+      if (this.items[index].getItemType() == itemType) {
+        return this.items[index];
+      }
+    }
+
+    return undefined;
+  }
+
+  // insert a new item into the inventory by instantiating it here
+  // will not succeed if inventory is currently full
+  // will increase amount of existing item if item is present
   // boolean represents success!
-  addItem(item: Item): boolean {
+  createItem(name: string, quantity: number, type: ITEM_TYPE): boolean {
+    // check if it already exists in the inventory
+    for (let index = 0; index < this.items.length; index++) {
+      if (this.items[index].getItemType() == type) {
+        this.items[index].setQuantity(
+          this.items[index].getQuantity() + quantity
+        );
+        return true;
+      }
+    }
+
+    // if we're still going the item does not exist
+
     if (this.items.length < this.capacity) {
-      this.items.push(item);
+      this.items.push(new Item(name, quantity, type));
       return true;
     } else {
       return false;
     }
-    // TODO: make sure we don't exceed capacity
+  }
+
+  // insert a new item directly
+  // this will fail if a matching typed item already exists
+  // boolean represents success
+  insertItem(item: Item) {
+    // check if it already exists in the inventory
+    for (let index = 0; index < this.items.length; index++) {
+      if (this.items[index].getItemType() == item.getItemType()) {
+        return false; // cut off now, already exists!
+      }
+    }
+
+    // item must not exist, continuing
+    this.items.push(item);
+  }
+
+  // subtract an item's quantity by provided amount
+  // will return false of operation was unsuccessful
+  // if it reaches 0 it will destroy the item
+  removeItem(itemType: ITEM_TYPE, amount: number): boolean {
+    let itemObject: Item;
+
+    this.items.forEach((item: Item) => {
+      if (item.getItemType() == itemType) {
+        itemObject = item;
+      }
+    });
+
+    if (itemObject != undefined) {
+      // this item does exist in the inventory!
+      let itemAmount = itemObject.getQuantity();
+      if (itemAmount >= amount) {
+        // player has enough
+        itemObject.setQuantity(itemObject.getQuantity() - amount); // subtract!
+        itemAmount = itemObject.getQuantity(); // update this now
+      }
+
+      if (itemAmount <= 0) {
+        // there are none left so we must destroy it
+        let itemIndex = this.items.indexOf(itemObject);
+        this.items.splice(itemIndex, 1);
+      }
+
+      return true;
+    } else {
+      return false;
+    }
   }
 
   // returns array of contained items

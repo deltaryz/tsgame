@@ -39,10 +39,12 @@ tileRegistry
 // tiles occupy single coordinates of world space
 export class Tile {
   private type: TILE_TYPE;
+  private position: game.Position;
 
-  constructor(type: TILE_TYPE) {
+  constructor(type: TILE_TYPE, position: game.Position) {
     console.log("Generating new tile of type " + type);
     this.type = type;
+    this.position = position;
   }
 
   // returns the type of tile this is
@@ -53,6 +55,11 @@ export class Tile {
   // changes the type of the tile
   setType(type: TILE_TYPE) {
     this.type = type;
+  }
+
+  // returns tile's position (this is read only!)
+  getPosition(): game.Position {
+    return this.position;
   }
 
   // returns the name of a tile

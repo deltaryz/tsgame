@@ -59,7 +59,7 @@ export function render() {
         itemButton.innerHTML =
           item.getDisplayName() + " x " + item.getQuantity();
         itemButton.onclick = function() {
-          currentGame.getCurrentPlayer().setSelectedItem(item);
+          currentGame.getCurrentPlayer().setSelectedItem(item.getItemType());
         };
         inventoryButtonsDiv.appendChild(itemButton);
       });
@@ -110,7 +110,11 @@ export function render() {
             .getSelectedItem()
             .useItem(undefined, currentMap[xStep][yStep]);
 
-          if (!result) displayToastNotification("That didn't work.");
+          if (!result) {
+            displayToastNotification("That didn't work.");
+          } else {
+            render(); // update screen
+          }
         };
 
         currentTile.on("mousedown", mouseDown);
@@ -156,7 +160,11 @@ export function render() {
           .getSelectedItem()
           .useItem(currentEntity);
 
-        if (!result) displayToastNotification("That didn't work.");
+        if (!result) {
+          displayToastNotification("That didn't work.");
+        } else {
+          render(); // update screen
+        }
       };
 
       currentEntitySprite.on("mousedown", mouseDown); // pass through to its click function
