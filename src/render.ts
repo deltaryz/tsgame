@@ -40,7 +40,7 @@ function setup() {
 // this should be called every time the game updates
 export function render() {
   if (ready) {
-    console.log("Updating screen!");
+    //console.log("Updating screen!");
     while (app.stage.children[0]) {
       app.stage.removeChild(app.stage.children[0]);
     } // remove all existing objects
@@ -56,25 +56,45 @@ export function render() {
       .forEach(function(item: item.Item) {
         //sconsole.log("Creating button for item " + item.getDisplayName());
         let itemButton = document.createElement("BUTTON");
-        itemButton.innerHTML =
-          item.getDisplayName() + " x " + item.getQuantity();
+        if (item.isKeyItem() == true) {
+          // key items won't need to display a quantity
+          itemButton.innerHTML = item.getDisplayName();
+        } else {
+          itemButton.innerHTML =
+            item.getDisplayName() + " x " + item.getQuantity();
+        }
+
         itemButton.onclick = function() {
           currentGame.getCurrentPlayer().setSelectedItem(item.getItemType());
         };
+
         inventoryButtonsDiv.appendChild(itemButton);
       });
 
     // show current held item
-    heldItemDisplay.innerHTML =
+    if (
       currentGame
         .getCurrentPlayer()
         .getSelectedItem()
-        .getDisplayName() +
-      " x " +
-      currentGame
+        .isKeyItem() == true
+    ) {
+      // key items won't need to display a quantity
+      heldItemDisplay.innerHTML = currentGame
         .getCurrentPlayer()
         .getSelectedItem()
-        .getQuantity();
+        .getDisplayName();
+    } else {
+      heldItemDisplay.innerHTML =
+        currentGame
+          .getCurrentPlayer()
+          .getSelectedItem()
+          .getDisplayName() +
+        " x " +
+        currentGame
+          .getCurrentPlayer()
+          .getSelectedItem()
+          .getQuantity();
+    }
 
     // RENDER MAP
 
@@ -130,6 +150,7 @@ export function render() {
       let currentEntitySprite: PIXI.Sprite;
       switch (currentEntity.getType()) {
         case entity.ENTITY_TYPE.PLANT_LIFEBUD:
+          // TODO: different sprites for lifebud growth levels
           currentEntitySprite = new PIXI.Sprite(
             app.loader.resources["assets/lifebud.png"].texture
           );

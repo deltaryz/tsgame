@@ -155,10 +155,6 @@ export class Inventory {
   // does this item exist in the inventory?
   // returns the item if it exists
   getItem(itemType: ITEM_TYPE): Item {
-    console.log(
-      "Something is checking if " + itemType + " exists in an inventory"
-    );
-
     for (let index = 0; index < this.items.length; index++) {
       if (this.items[index].getItemType() == itemType) {
         return this.items[index];
