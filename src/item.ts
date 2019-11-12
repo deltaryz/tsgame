@@ -42,10 +42,28 @@ itemRegistry
     name: "Lifeseed",
     use: (entityTarget?: entity.Entity, tileTarget?: tile.Tile) => {
       if (tileTarget != undefined) {
+        // user has clicked a tile
+        if (tileTarget.getType() == tile.TILE_TYPE.DIRT) {
+          // user has clicked dirt
+          // let's put a lifebud there!
+          let newLifebud = new entity.Entity(
+            entity.ENTITY_TYPE.PLANT_LIFEBUD,
+            tileTarget.getPosition()
+          );
+          game.currentGame.getCurrentRoom().addEntity(newLifebud); // add to the room
+
+          game.currentGame
+            .getCurrentPlayer()
+            .getInventory()
+            .removeItem(ITEM_TYPE.LIFESEED, 1);
+
           return true;
         } else {
           return false;
         }
+      } else {
+        return false;
+      }
     },
     keyItem: false
   });
