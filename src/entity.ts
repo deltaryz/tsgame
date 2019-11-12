@@ -5,6 +5,8 @@ import * as game from "./game"; // everything entity related!
 import * as tile from "./tile"; // everything tile related!
 import * as room from "./room"; // everything room related!
 
+// TODO: plant growth should have a consistent speed that scales according to the tick rate
+
 // Entity class
 
 // this contains metadata of what an entity is/does
