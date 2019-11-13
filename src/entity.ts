@@ -245,7 +245,9 @@ export class Player extends Entity {
 
         // initialize inventory
         let defaultHands = new item.Item("Hands", 1, item.ITEM_TYPE.HANDS);
+        let defaultWaterBottles = new item.Item("Water Bottle", 3, item.ITEM_TYPE.WATER_BOTTLE);
         this.getInventory().insertItem(defaultHands);
+        this.getInventory().insertItem(defaultWaterBottles);
         this.selectedItem = defaultHands; // this represents nothing
     }
 

@@ -23,6 +23,7 @@ export let itemRegistry = new Map<ITEM_TYPE, ItemData>();
 // These are used to identify specific types of items
 export enum ITEM_TYPE {
     HANDS = "HANDS",
+    WATER_BOTTLE = "WATER_BOTTLE",
     LIFESEED = "LIFESEED"
 }
 
@@ -31,12 +32,22 @@ itemRegistry
     .set(ITEM_TYPE.HANDS, {
         name: "Hands",
         use: (entityTarget?: entity.Entity, tileTarget?: tile.Tile) => {
+            // equivalent to "nothing"
             if (entityTarget != undefined) entityTarget.onClick(); // hands will directly call the entity's onClick
             if (tileTarget != undefined)
                 render.displayToastNotification("This is: " + tileTarget.getName());
             return true;
         },
         keyItem: true
+    })
+    .set(ITEM_TYPE.WATER_BOTTLE, {
+        // we use this as a rudimentary method to water plants
+        name: "Water Bottle",
+        use: (entityTarget?: entity.Entity, tileTarget?: tile.Tile) => {
+            // TODO: water bottle use
+            return true;
+        },
+        keyItem: false
     })
     .set(ITEM_TYPE.LIFESEED, {
         name: "Lifeseed",
