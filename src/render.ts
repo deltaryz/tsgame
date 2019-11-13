@@ -139,6 +139,7 @@ export function render() {
         };
 
         currentTile.on("mousedown", mouseDown);
+        currentTile.on("touchend", mouseDown);
         app.stage.addChild(currentTile);
       }
     }
@@ -190,6 +191,7 @@ export function render() {
       };
 
       currentEntitySprite.on("mousedown", mouseDown); // pass through to its click function
+      currentEntitySprite.on("touchend", mouseDown); // should work on mobile too
       currentEntitySprite.on("mouseover", () => {
         // what do we do when the mouse is over this?
         displayTooltip(currentEntityDisplayName);
