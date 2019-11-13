@@ -52,6 +52,7 @@ entityRegistry
         name: "Item",
         onClick: (entity: Entity) => {
             // TODO: pick up items
+            return false;
         },
         metaType: ENTITY_META_TYPE.DEFAULT
     })
@@ -59,40 +60,45 @@ entityRegistry
         name: "Lifebud",
         onClick: (entity: Entity) => {
             if (entity.getGrowth() == 100) {
-                render.displayToastNotification(
-                    "You harvested the Lifebud and obtained seeds."
-                );
 
-                game.currentGame.getCurrentRoom().removeEntity(entity);
-                game.currentGame
+                let result = game.currentGame
                     .getCurrentPlayer()
                     .getInventory()
                     .createItem("Lifeseed", 3, item.ITEM_TYPE.LIFESEED);
+
+                if (result == true) {
+                    // item creation was a success
+                    render.displayToastNotification(
+                        "You harvested the Lifebud and obtained seeds."
+                    );
+                    game.currentGame.getCurrentRoom().removeEntity(entity);
+                } else {
+                    render.displayToastNotification("You don't have inventory space!");
+                }
             } else {
                 render.displayToastNotification(
-                    "This Lifebud is not ready to harvest yet. (" +
+                    "This Lifebud is not ready to harvest yet. (Growth: " +
                     entity.getGrowth() +
-                    "%)"
+                    "%, Moisture: " + entity.getMoisture() + "%)"
                 );
             }
         },
         metaType: ENTITY_META_TYPE.PLANT,
         tick: (entity: Entity) => {
-            // this plant will grow a little every tick!
-            entity.grow(25);
+            // this plant might grow a little every tick!
 
-            if (entity.getGrowth() >= 100) {
-                // the plant is fully grown!
-                render.displayToastNotification(
-                    "A " + entity.getDisplayName() + " has fully grown!"
-                );
+            // growth will require 10% moisture per turn
+            if (entity.getMoisture() >= 10) {
+                entity.setMoisture(entity.getMoisture() - 10);
+                // TODO: show number thing for moisture value changes / growth
+                entity.grow(25);
             }
         }
     })
     .set(ENTITY_TYPE.OBJECT_STONE, {
         name: "Stone",
         onClick: (entity: Entity) => {
-            render.displayToastNotification("The rock is too heavy to move.");
+            render.displayToastNotification("The " + entity.getDisplayName() + " is too heavy to move.");
         },
         metaType: ENTITY_META_TYPE.OBJECT
     });
@@ -103,15 +109,18 @@ export class Entity {
     private inventory: item.Inventory; // all entities can have inventories
     private position: game.Position;
     private type: ENTITY_TYPE;
+    private metaType: ENTITY_META_TYPE;
     private displayName: string;
     private growth: number; // only relevant for plants, defines growth percentage out of 100
+    private moisture: number; // only relevant for plants, defines how much water the plant has absorbed
 
     constructor(
         type: ENTITY_TYPE,
         position?: game.Position,
         inventoryItems?: item.Item[],
         name?: string,
-        growth?: number
+        growth?: number,
+        moisture?: number,
     ) {
         let outputPosX: number = 0; // assume 0 if nothign else is given
         let outputPosY: number = 0;
@@ -137,6 +146,7 @@ export class Entity {
         }
 
         this.type = type;
+        this.metaType = entityRegistry.get(type).metaType;
 
         if (name != undefined) {
             this.displayName = name;
@@ -157,6 +167,18 @@ export class Entity {
                 this.growth = -1;
             }
         }
+
+        if (moisture != undefined) {
+            this.moisture = moisture;
+        } else {
+            if (entityRegistry.get(type).metaType == ENTITY_META_TYPE.PLANT) {
+                // this is some sort of plant, set it to 0
+                this.moisture = 0;
+            } else {
+                // we use -1 to represent something with no moisture value
+                this.moisture = -1;
+            }
+        }
     }
 
     // get position of the entity
@@ -169,14 +191,14 @@ export class Entity {
         this.position = pos;
     }
 
-    // get the selected texture of an entity
+    // get the type of an entity
     getType(): ENTITY_TYPE {
         return this.type;
     }
 
-    // set the visible texture of an entity
-    setType(texture: ENTITY_TYPE) {
-        this.type = texture;
+    // gets the metaType of an entity
+    getMetaType(): ENTITY_META_TYPE {
+        return this.metaType;
     }
 
     // returns the entity's inventory
@@ -211,8 +233,28 @@ export class Entity {
 
     // grow by provided value
     grow(amount: number) {
-        this.growth += amount;
-        if (this.growth >= 100) this.growth = 100;
+        if (this.growth < 100 && this.growth + amount >= 100) {
+            // only display this on the tick in which it grows!
+            this.growth = 100;
+
+            // the plant is fully grown!
+            // TODO: change this to a number thing
+            render.displayToastNotification(
+                "A " + this.getDisplayName() + " has fully grown!"
+            );
+        } else {
+            if (this.growth < 100) { this.growth += amount; } else { this.growth = 100; }
+        }
+    }
+
+    // returns the moisture
+    getMoisture(): number {
+        return this.moisture;
+    }
+
+    // sets the moisture
+    setMoisture(moisture: number) {
+        this.moisture = moisture;
     }
 
     // returns the tick function for this entity

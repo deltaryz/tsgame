@@ -228,3 +228,11 @@ export function displayToastNotification(text: string, duration?: number) {
       temporaryToastDiv.innerHTML = "";
     }, actualDuration);*/ //TODO: fix timeout
 }
+
+/*
+// displays a small number at a position to indicate a change
+export function displayNumberThingPleaseRenameThisFunction(position: game.Position, text: string, color: number) {
+    // TODO: number thing
+    // TODO: change color to usable variable type
+}
+*/

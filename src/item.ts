@@ -24,6 +24,7 @@ export let itemRegistry = new Map<ITEM_TYPE, ItemData>();
 export enum ITEM_TYPE {
     HANDS = "HANDS",
     WATER_BOTTLE = "WATER_BOTTLE",
+    WATER_BOTTLE_EMPTY = "WATER_BOTTLE_EMPTY",
     LIFESEED = "LIFESEED"
 }
 
@@ -44,8 +45,28 @@ itemRegistry
         // we use this as a rudimentary method to water plants
         name: "Water Bottle",
         use: (entityTarget?: entity.Entity, tileTarget?: tile.Tile) => {
-            // TODO: water bottle use
-            return true;
+            if (entityTarget != undefined) {
+                // user has clicked an entity
+                if (entityTarget.getMetaType() == entity.ENTITY_META_TYPE.PLANT) {
+                    // user clicked a plant
+                    entityTarget.setMoisture(entityTarget.getMoisture() + 50); // water bottles give 50% moisture in one pour
+                    render.displayToastNotification("You watered the " + entityTarget.getDisplayName() + " to " + entityTarget.getMoisture() + "% moisture.");
+                    game.currentGame.getCurrentPlayer().getInventory().removeItem(ITEM_TYPE.WATER_BOTTLE, 1);
+                    // add an empty water bottle
+                    game.currentGame.getCurrentPlayer().getInventory().createItem("Water Bottle (Empty)", 1, ITEM_TYPE.WATER_BOTTLE_EMPTY);
+                    return true;
+                }
+            }
+            return false;
+        },
+        keyItem: false
+    })
+    .set(ITEM_TYPE.WATER_BOTTLE_EMPTY, {
+        // can be refilled with a water tile
+        name: "Water Bottle (empty)",
+        use: (entityTarget?: entity.Entity, tileTarget?: tile.Tile) => {
+            return false;
+            // TODO: refill water bottles
         },
         keyItem: false
     })
@@ -159,7 +180,7 @@ export class Inventory {
         if (capacity != undefined) {
             this.capacity = capacity;
         } else {
-            this.capacity = 3; // default inventory size is 3!
+            this.capacity = 5; // default inventory size is 5!
         }
     }
 
@@ -251,5 +272,15 @@ export class Inventory {
     // returns array of contained items
     getContents(): Item[] {
         return this.items;
+    }
+
+    // returns the capacity
+    getCapacity(): number {
+        return this.capacity;
+    }
+
+    // sets the capacity
+    setCapacity(capacity: number) {
+        this.capacity = capacity;
     }
 }
