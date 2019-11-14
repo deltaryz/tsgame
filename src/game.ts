@@ -11,7 +11,7 @@ import * as entity from "./entity"; // everything entity related!
 import * as tile from "./tile"; // everything tile related!
 import * as room from "./room"; // everything room related!
 
-export let currentGame: Game; // this will be used to reference anything relating to the current game state
+export let currentGame: Game; // this will be used to reference anything relating too the current game state
 let tickInterval = 2000; // interval (in milliseconds) of 1 game tick
 
 // what it says on the tin
@@ -27,6 +27,7 @@ class Game {
   private currentState: GAME_STATE;
   private currentPlayer: entity.Player;
   private tickInterval: number;
+  private tickIntervalID: NodeJS.Timeout;
 
   // we initialize each of these components separately from the gamestate initialization
   // this makes it easier to swap them on the fly!
@@ -57,10 +58,27 @@ class Game {
 
   // initializes tick and sets game state
   startGame() {
+    console.log("Starting game!");
     this.currentState = GAME_STATE.GAMEPLAY;
-    setInterval(() => {
+    this.tickIntervalID = setInterval(() => {
       this.tick();
     }, this.tickInterval);
+  }
+
+  // kills the tick and sets game state
+  pauseGame() {
+    console.log("Pausing game!");
+    this.currentState = GAME_STATE.PAUSE;
+    clearInterval(this.tickIntervalID);
+  }
+
+  // toggles game state between PAUSE and GAMEPLAY
+  togglePause() {
+    if (this.currentState == GAME_STATE.PAUSE) {
+      this.startGame();
+    } else if (this.currentState == GAME_STATE.GAMEPLAY) {
+      this.pauseGame();
+    }
   }
 
   // returns the current room
@@ -100,7 +118,7 @@ class Game {
 // represents what state the game is currently in
 enum GAME_STATE {
   INITIALIZE = "INITIALIZE",
-  MENU = "MENU",
+  PAUSE = "PAUSE",
   GAMEPLAY = "GAMEPLAY"
 }
 

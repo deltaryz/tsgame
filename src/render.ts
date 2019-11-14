@@ -14,6 +14,7 @@ let heldItemDisplay = document.getElementById("selectedItemDisplay");
 let temporaryToastDiv = document.getElementById("temporaryToast"); // TODO: make toast less temporary
 let inventoryButtonsDiv = document.getElementById("inventoryButtons");
 inventoryButtonsDiv.innerHTML = "Please wait while the game loads!";
+let pauseButton = document.getElementById("pauseButton");
 
 export const app = new PIXI.Application({
   width: 256,
@@ -47,6 +48,11 @@ export function render() {
     } // remove all existing objects
 
     // UPDATE UI
+
+    // make the pause button do something
+    pauseButton.onclick = () => {
+      currentGame.togglePause();
+    };
 
     // show buttons for each inventory item
     inventoryButtonsDiv.innerHTML = ""; // wipe this clean!
