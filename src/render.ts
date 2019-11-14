@@ -150,60 +150,60 @@ export function render() {
     currentEntities.forEach(function(currentEntity: entity.Entity) {
       if (currentEntity.getVisibility() == true) {
         // only do any of this if the entity is visible
-      let currentEntityDisplayName = currentEntity.getDisplayName();
-      let currentEntitySprite: PIXI.Sprite;
-      switch (currentEntity.getType()) {
-        case entity.ENTITY_TYPE.PLANT_LIFEBUD:
-          // TODO: different sprites for lifebud growth levels
-          currentEntitySprite = new PIXI.Sprite(
-            app.loader.resources["assets/lifebud.png"].texture
-          );
-          break;
+        let currentEntityDisplayName = currentEntity.getDisplayName();
+        let currentEntitySprite: PIXI.Sprite;
+        switch (currentEntity.getType()) {
+          case entity.ENTITY_TYPE.PLANT_LIFEBUD:
+            // TODO: different sprites for lifebud growth levels
+            currentEntitySprite = new PIXI.Sprite(
+              app.loader.resources["assets/lifebud.png"].texture
+            );
+            break;
 
-        case entity.ENTITY_TYPE.OBJECT_STONE:
-          currentEntitySprite = new PIXI.Sprite(
-            app.loader.resources["assets/stone.png"].texture
-          );
-          break;
+          case entity.ENTITY_TYPE.OBJECT_STONE:
+            currentEntitySprite = new PIXI.Sprite(
+              app.loader.resources["assets/stone.png"].texture
+            );
+            break;
 
-        default:
-          currentEntitySprite = new PIXI.Sprite(
-            app.loader.resources["assets/player.png"].texture
-          );
-          break;
-      }
-      currentEntitySprite.x = (currentEntity.getPosition().x + 1) * 16 - 16;
-      currentEntitySprite.y = (currentEntity.getPosition().y + 1) * 16 - 16;
-      currentEntitySprite.interactive = true; // tiles should be clickable!
-
-      let mouseDown = function() {
-        dismissTooltip(); // since mouseout doesn't get triggered when you click it
-        // use the player's held item to use this target
-        // if this was successful, result will be true
-        let result = currentGame
-          .getCurrentPlayer()
-          .getSelectedItem()
-          .useItem(currentEntity);
-
-        if (!result) {
-          displayToastNotification("That didn't work.");
-        } else {
-          render(); // update screen
+          default:
+            currentEntitySprite = new PIXI.Sprite(
+              app.loader.resources["assets/player.png"].texture
+            );
+            break;
         }
-      };
+        currentEntitySprite.x = (currentEntity.getPosition().x + 1) * 16 - 16;
+        currentEntitySprite.y = (currentEntity.getPosition().y + 1) * 16 - 16;
+        currentEntitySprite.interactive = true; // tiles should be clickable!
 
-      currentEntitySprite.on("mousedown", mouseDown); // pass through to its click function
-      currentEntitySprite.on("touchend", mouseDown); // should work on mobile too
-      currentEntitySprite.on("mouseover", () => {
-        // what do we do when the mouse is over this?
-        displayTooltip(currentEntityDisplayName);
-      });
-      currentEntitySprite.on("mouseout", () => {
-        // what do we do when the mouse leaves?
-        dismissTooltip();
-      });
+        let mouseDown = function() {
+          dismissTooltip(); // since mouseout doesn't get triggered when you click it
+          // use the player's held item to use this target
+          // if this was successful, result will be true
+          let result = currentGame
+            .getCurrentPlayer()
+            .getSelectedItem()
+            .useItem(currentEntity);
 
-      app.stage.addChild(currentEntitySprite);
+          if (!result) {
+            displayToastNotification("That didn't work.");
+          } else {
+            render(); // update screen
+          }
+        };
+
+        currentEntitySprite.on("mousedown", mouseDown); // pass through to its click function
+        currentEntitySprite.on("touchend", mouseDown); // should work on mobile too
+        currentEntitySprite.on("mouseover", () => {
+          // what do we do when the mouse is over this?
+          displayTooltip(currentEntityDisplayName);
+        });
+        currentEntitySprite.on("mouseout", () => {
+          // what do we do when the mouse leaves?
+          dismissTooltip();
+        });
+
+        app.stage.addChild(currentEntitySprite);
       }
     });
   }

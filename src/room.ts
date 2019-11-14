@@ -39,18 +39,42 @@ export class Room {
       case ROOM_TYPE.BASIC:
         // this will generate nothing but dirt
 
+        // we set up the single water tile that we start with
+        // this technically isn't an entity but we still want to make sure it goes in a unique spot
+        let waterTilePosition = this.getRandomUnoccupiedPositionInRoom();
+        this.entities.push(
+          new entity.Entity(
+            entity.ENTITY_TYPE.PLACEHOLDER,
+            waterTilePosition,
+            undefined,
+            "DEFAULTWATER",
+            false
+          )
+        );
+
         this.tiles = []; // set up each row!
         for (let xStep = 0; xStep < sizeX; xStep++) {
           this.tiles[xStep] = []; // set up each column!
           for (let yStep = 0; yStep < sizeY; yStep++) {
             // these kinds of for loops are hell
 
-            // create a new dirt tile
-            this.setTile(
-              xStep,
-              yStep,
-              new tile.Tile(tile.TILE_TYPE.DIRT, { x: xStep, y: yStep })
-            ); // assign that tile to a place in the world map
+            // check if we're in the water tile position
+            if (xStep == waterTilePosition.x && yStep == waterTilePosition.y) {
+              // we are!
+              // create a new water tile
+              this.setTile(
+                xStep,
+                yStep,
+                new tile.Tile(tile.TILE_TYPE.WATER, waterTilePosition)
+              );
+            } else {
+              // create a new dirt tile
+              this.setTile(
+                xStep,
+                yStep,
+                new tile.Tile(tile.TILE_TYPE.DIRT, { x: xStep, y: yStep })
+              ); // assign that tile to a place in the world map
+            }
           }
         }
         break;
