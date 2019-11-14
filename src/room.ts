@@ -108,4 +108,29 @@ export class Room {
   getRoomSize(): number[] {
     return [this.sizeX, this.sizeY];
   }
+
+  // returns a random position in the room (this will not check for occupied positions!)
+  getRandomPositionInRoom(): game.Position {
+    let xPos = game.getRandomIntInclusive(0, this.getRoomSize()[0] - 1);
+    let yPos = game.getRandomIntInclusive(0, this.getRoomSize()[1] - 1);
+
+    console.log("Random position generated: " + xPos + " " + yPos);
+    return { x: xPos, y: yPos };
+  }
+
+  // returns a random UNIQUE position in the room
+  getRandomUnoccupiedPositionInRoom(): game.Position {
+    let existingPositions: game.Position[] = [];
+
+    this.getEntities().forEach((currentEntity: entity.Entity) => {
+      existingPositions.push(currentEntity.getPosition());
+    });
+
+    let result = this.getRandomPositionInRoom();
+    while (existingPositions.includes(result)) {
+      result = this.getRandomPositionInRoom();
+    }
+
+    return result;
+  }
 }

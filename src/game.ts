@@ -15,7 +15,7 @@ export let currentGame: Game; // this will be used to reference anything relatin
 let tickInterval = 2000; // interval (in milliseconds) of 1 game tick
 
 // what it says on the tin
-function getRandomIntInclusive(min: number, max: number) {
+export function getRandomIntInclusive(min: number, max: number) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive
@@ -115,28 +115,15 @@ export interface Position {
 let defaultRoom = new room.Room(room.ROOM_TYPE.BASIC, 16, 16);
 let defaultPlayer = new entity.Player("Farmer");
 
-// we set up a placement queue so that nothing is generated on top of anything else
-let entityPlacementQueue: entity.Entity[] = [];
-
 // spawn 1 lifebud to get the game started
 let defaultLifebud = new entity.Entity(entity.ENTITY_TYPE.PLANT_LIFEBUD);
-entityPlacementQueue.push(defaultLifebud);
+defaultLifebud.setPosition(defaultRoom.getRandomUnoccupiedPositionInRoom());
+defaultRoom.addEntity(defaultLifebud);
 
 // spawn 1 stone just so it's there
 let defaultStone = new entity.Entity(entity.ENTITY_TYPE.OBJECT_STONE);
-entityPlacementQueue.push(defaultStone);
-
-let occupiedPositions: Position[] = []; // keep track of which positions have been used
-entityPlacementQueue.forEach((entity: entity.Entity) => {
-  let currentPosition = getRandomPositionInRoom(defaultRoom);
-  while (occupiedPositions.includes(currentPosition)) {
-    // loop this until position is unique
-    currentPosition = getRandomPositionInRoom(defaultRoom);
-  }
-  occupiedPositions.push(currentPosition);
-  entity.setPosition(currentPosition);
-  defaultRoom.addEntity(entity);
-});
+defaultStone.setPosition(defaultRoom.getRandomPositionInRoom());
+defaultRoom.addEntity(defaultStone);
 
 // this will contain everything relevant to the current game
 currentGame = new Game(
@@ -149,14 +136,6 @@ currentGame = new Game(
 // we keep the rendering code separate so that it can easily be changed or reworked
 // render the game after 2 seconds to make sure the basic stuff is present
 setTimeout(render.render, 2000);
-
-function getRandomPositionInRoom(room: room.Room): Position {
-  let xPos = getRandomIntInclusive(0, room.getRoomSize()[0] - 1);
-  let yPos = getRandomIntInclusive(0, room.getRoomSize()[1] - 1);
-
-  console.log("Random position generated: " + xPos + " " + yPos);
-  return { x: xPos, y: yPos };
-}
 
 // make sure we wait for pixi to load its assets
 let waitForPixi = setInterval(() => {
