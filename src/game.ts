@@ -122,8 +122,11 @@ defaultRoom.addEntity(defaultLifebud);
 
 // spawn 1 stone just so it's there
 let defaultStone = new entity.Entity(entity.ENTITY_TYPE.OBJECT_STONE);
-defaultStone.setPosition(defaultRoom.getRandomPositionInRoom());
+defaultStone.setPosition(defaultRoom.getRandomUnoccupiedPositionInRoom());
 defaultRoom.addEntity(defaultStone);
+
+// clear out the placeholder entities sincec we don't need those anymore
+defaultRoom.clearPlaceholders();
 
 // this will contain everything relevant to the current game
 currentGame = new Game(

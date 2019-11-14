@@ -157,4 +157,14 @@ export class Room {
 
     return result;
   }
+
+  // clears out all PLACEHOLDER entities
+  clearPlaceholders() {
+    console.log("Clearing all placecholder entities from the room!");
+    this.entities.forEach((currentEntity: entity.Entity) => {
+      if (currentEntity.getType() == entity.ENTITY_TYPE.PLACEHOLDER) {
+        this.removeEntity(currentEntity);
+      }
+    });
+  }
 }
