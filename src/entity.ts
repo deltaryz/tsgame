@@ -27,7 +27,8 @@ export enum ENTITY_TYPE {
   PLAYER = "PLAYER", // this one is special
   ITEM_ENTITY = "ITEM_ENTITY",
   PLANT_LIFEBUD = "PLANT_LIFEBUD",
-  OBJECT_STONE = "OBJECT_STONE"
+  OBJECT_STONE = "OBJECT_STONE",
+  PLACEHOLDER = "PLACEHOLDER" // we use this to hold space for non-entity objects that need unique positions
 }
 
 // these are used for more generic identification
@@ -104,6 +105,11 @@ entityRegistry
       );
     },
     metaType: ENTITY_META_TYPE.OBJECT
+  })
+  .set(ENTITY_TYPE.PLACEHOLDER, {
+    name: "Placeholder",
+    onClick: () => {},
+    metaType: ENTITY_META_TYPE.DEFAULT
   });
 
 // Entity class
