@@ -285,7 +285,11 @@ export class Entity {
 
   // sets the moisture
   setMoisture(moisture: number) {
-    this.moisture = moisture;
+    if (moisture >= 100) {
+      this.moisture = 100;
+    } else {
+      this.moisture = moisture;
+    }
   }
 
   // returns the tick function for this entity
