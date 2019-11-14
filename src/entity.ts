@@ -120,6 +120,7 @@ export class Entity {
   private type: ENTITY_TYPE;
   private metaType: ENTITY_META_TYPE;
   private displayName: string;
+  private visible: boolean; // can we see it? - it will not be interactable by the player if this is true
   private growth: number; // only relevant for plants, defines growth percentage out of 100
   private moisture: number; // only relevant for plants, defines how much water the plant has absorbed
 
@@ -128,6 +129,7 @@ export class Entity {
     position?: game.Position,
     inventoryItems?: item.Item[],
     name?: string,
+    visible?: boolean,
     growth?: number,
     moisture?: number
   ) {
@@ -164,6 +166,12 @@ export class Entity {
     }
 
     this.inventory = new item.Inventory(inventoryItems);
+
+    if (visible != undefined) {
+      this.visible = visible;
+    } else {
+      this.visible = true;
+    }
 
     if (growth != undefined) {
       this.growth = growth;
@@ -228,6 +236,16 @@ export class Entity {
   // sets display name
   setDisplayName(name: string) {
     this.displayName = name;
+  }
+
+  // returns visibility
+  getVisibility(): boolean {
+    return this.visible;
+  }
+
+  // sets visibility
+  setVisibility(vis: boolean) {
+    this.visible = vis;
   }
 
   // get growth value

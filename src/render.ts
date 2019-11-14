@@ -148,6 +148,8 @@ export function render() {
     let currentEntities = currentGame.getCurrentRoom().getEntities();
 
     currentEntities.forEach(function(currentEntity: entity.Entity) {
+      if (currentEntity.getVisibility() == true) {
+        // only do any of this if the entity is visible
       let currentEntityDisplayName = currentEntity.getDisplayName();
       let currentEntitySprite: PIXI.Sprite;
       switch (currentEntity.getType()) {
@@ -202,6 +204,7 @@ export function render() {
       });
 
       app.stage.addChild(currentEntitySprite);
+      }
     });
   }
 }
