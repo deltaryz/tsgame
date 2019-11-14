@@ -73,6 +73,7 @@ itemRegistry
           return true;
         }
       }
+
       return false;
     },
     keyItem: false
@@ -81,8 +82,27 @@ itemRegistry
     // can be refilled with a water tile
     name: "Water Bottle (empty)",
     use: (entityTarget?: entity.Entity, tileTarget?: tile.Tile) => {
+      if (tileTarget != undefined) {
+        // user has clicked a tile
+        switch (tileTarget.getType()) {
+          case tile.TILE_TYPE.WATER:
+            // user has clicked a water tile
+            render.displayToastNotification("You refilled the water bottle.");
+
+            game.currentGame
+              .getCurrentPlayer()
+              .getInventory()
+              .removeItem(ITEM_TYPE.WATER_BOTTLE_EMPTY, 1);
+            game.currentGame
+              .getCurrentPlayer()
+              .getInventory()
+              .createItem("Water Bottle", 1, ITEM_TYPE.WATER_BOTTLE);
+
+            return true;
+            break;
+        }
+      }
       return false;
-      // TODO: refill water bottles
     },
     keyItem: false
   })
