@@ -3,11 +3,11 @@
 // this is deliberately kept separate from internal game logic
 
 import * as PIXI from "pixi.js"; // neat graphics library
-import { currentGame } from "./game"; // Represents the overall game state
+import * as game from "./game"; // Represents the overall game state
 import * as entity from "./entity"; // Needed for displaying entities
 import * as item from "./item"; // Needed for displaying inventory items
 import * as room from "./room"; // everything room related!
-import { TILE_TYPE } from "./tile";
+import * as tile from "./tile";
 export let ready = false; // make sure we don't render anything before that has been initialized
 
 let heldItemDisplay = document.getElementById("selectedItemDisplay");
@@ -28,13 +28,43 @@ app.loader
   .add("assets/dirt.png")
   .add("assets/stone.png")
   .add("assets/water.png")
-  .add("assets/player.png")
+  .add("assets/missing.png")
   .add("assets/lifebud.png")
   .add("assets/lifeseed.png")
   .load(setup);
 
+// DEFINE TILE TEXTURE MAP
+let tileTextureMap = new Map<tile.TILE_TYPE, PIXI.Texture>(); // we match tile types with textures
+
+// DEFINE ENTITY TEXTURE MAP
+let entityTextureMap = new Map<entity.ENTITY_TYPE, PIXI.Texture>();
+
+// DEFINE ITEM TEXTURE MAP
+let itemTextureMap = new Map<item.ITEM_TYPE, PIXI.Texture>();
+// TODO: item textures
+
 function setup() {
   document.body.appendChild(app.view);
+
+  // SETUP TEXTURES
+
+  tileTextureMap
+    .set(tile.TILE_TYPE.DIRT, app.loader.resources["assets/dirt.png"].texture)
+    .set(tile.TILE_TYPE.STONE, app.loader.resources["assets/stone.png"].texture)
+    .set(
+      tile.TILE_TYPE.WATER,
+      app.loader.resources["assets/water.png"].texture
+    );
+
+  entityTextureMap
+    .set(
+      entity.ENTITY_TYPE.PLANT_LIFEBUD,
+      app.loader.resources["assets/lifebud.png"].texture
+    )
+    .set(
+      entity.ENTITY_TYPE.OBJECT_STONE,
+      app.loader.resources["assets/stone.png"].texture
+    );
 
   ready = true;
 }
@@ -47,16 +77,31 @@ export function render() {
       app.stage.removeChild(app.stage.children[0]);
     } // remove all existing objects
 
+    /* TODO: finish smart tile replacement
+    app.stage.children.forEach((sprite: PIXI.Sprite) => {
+      switch (sprite.name) {
+        case "Tile":
+          if (game.currentGame.getCurrentRoom().getTile(convertScreenToMapCoords(sprite.x, sprite.y).x, convertScreenToMapCoords(sprite.x, sprite.y).y).getType() != 
+          )
+          break;
+        case "Entity":
+          break;
+      }
+    });
+    */
+
+    // TODO: implement smart entity replacement
+
     // UPDATE UI
 
     // make the pause button do something
     pauseButton.onclick = () => {
-      currentGame.togglePause();
+      game.currentGame.togglePause();
     };
 
     // show buttons for each inventory item
     inventoryButtonsDiv.innerHTML = ""; // wipe this clean!
-    currentGame
+    game.currentGame
       .getCurrentPlayer()
       .getInventory()
       .getContents()
@@ -72,7 +117,9 @@ export function render() {
         }
 
         itemButton.onclick = function() {
-          currentGame.getCurrentPlayer().setSelectedItem(item.getItemType());
+          game.currentGame
+            .getCurrentPlayer()
+            .setSelectedItem(item.getItemType());
         };
 
         inventoryButtonsDiv.appendChild(itemButton);
@@ -80,24 +127,24 @@ export function render() {
 
     // show current held item
     if (
-      currentGame
+      game.currentGame
         .getCurrentPlayer()
         .getSelectedItem()
         .isKeyItem() == true
     ) {
       // key items won't need to display a quantity
-      heldItemDisplay.innerHTML = currentGame
+      heldItemDisplay.innerHTML = game.currentGame
         .getCurrentPlayer()
         .getSelectedItem()
         .getDisplayName();
     } else {
       heldItemDisplay.innerHTML =
-        currentGame
+        game.currentGame
           .getCurrentPlayer()
           .getSelectedItem()
           .getDisplayName() +
         " x " +
-        currentGame
+        game.currentGame
           .getCurrentPlayer()
           .getSelectedItem()
           .getQuantity();
@@ -105,34 +152,26 @@ export function render() {
 
     // RENDER MAP
 
-    let currentMap = currentGame.getCurrentRoom().getTileMap();
+    let currentMap = game.currentGame.getCurrentRoom().getTileMap();
 
     for (let xStep = 0; xStep < currentMap.length; xStep++) {
       for (let yStep = 0; yStep < currentMap[0].length; yStep++) {
         let currentTile: PIXI.Sprite;
 
         // set appropriate texture
-        switch (currentMap[xStep][yStep].getType()) {
-          default:
-          case TILE_TYPE.DIRT:
-            currentTile = new PIXI.Sprite(
-              app.loader.resources["assets/dirt.png"].texture
-            );
-            break;
-          case TILE_TYPE.WATER:
-            currentTile = new PIXI.Sprite(
-              app.loader.resources["assets/water.png"].texture
-            );
-            break;
-        }
+        currentTile = new PIXI.Sprite(
+          tileTextureMap.get(currentMap[xStep][yStep].getType())
+        );
+
         currentTile.x = (xStep + 1) * 16 - 16;
         currentTile.y = (yStep + 1) * 16 - 16;
+        currentTile.name = "Tile";
         currentTile.interactive = true; // tiles should be clickable!
 
         let mouseDown = function() {
           // use the player's held item to use this target
           // if this was successful, result will be true
-          let result = currentGame
+          let result = game.currentGame
             .getCurrentPlayer()
             .getSelectedItem()
             .useItem(undefined, currentMap[xStep][yStep]);
@@ -151,42 +190,34 @@ export function render() {
     }
 
     // RENDER ENTITIES
-    let currentEntities = currentGame.getCurrentRoom().getEntities();
+    let currentEntities = game.currentGame.getCurrentRoom().getEntities();
 
     currentEntities.forEach(function(currentEntity: entity.Entity) {
       if (currentEntity.getVisibility() == true) {
         // only do any of this if the entity is visible
         let currentEntityDisplayName = currentEntity.getDisplayName();
         let currentEntitySprite: PIXI.Sprite;
-        switch (currentEntity.getType()) {
-          case entity.ENTITY_TYPE.PLANT_LIFEBUD:
-            // TODO: different sprites for lifebud growth levels
-            currentEntitySprite = new PIXI.Sprite(
-              app.loader.resources["assets/lifebud.png"].texture
-            );
-            break;
 
-          case entity.ENTITY_TYPE.OBJECT_STONE:
-            currentEntitySprite = new PIXI.Sprite(
-              app.loader.resources["assets/stone.png"].texture
-            );
-            break;
-
-          default:
-            currentEntitySprite = new PIXI.Sprite(
-              app.loader.resources["assets/player.png"].texture
-            );
-            break;
+        if (entityTextureMap.get(currentEntity.getType()) != undefined) {
+          currentEntitySprite = new PIXI.Sprite(
+            entityTextureMap.get(currentEntity.getType())
+          );
+        } else {
+          currentEntitySprite = new PIXI.Sprite(
+            app.loader.resources["assets/missing.png"].texture
+          );
         }
+
         currentEntitySprite.x = (currentEntity.getPosition().x + 1) * 16 - 16;
         currentEntitySprite.y = (currentEntity.getPosition().y + 1) * 16 - 16;
         currentEntitySprite.interactive = true; // tiles should be clickable!
+        currentEntitySprite.name = "Entity";
 
         let mouseDown = function() {
           dismissTooltip(); // since mouseout doesn't get triggered when you click it
           // use the player's held item to use this target
           // if this was successful, result will be true
-          let result = currentGame
+          let result = game.currentGame
             .getCurrentPlayer()
             .getSelectedItem()
             .useItem(currentEntity);
@@ -213,6 +244,16 @@ export function render() {
       }
     });
   }
+}
+
+// converts a screenspace XY to map XY
+function convertScreenToMapCoords(
+  screenX: number,
+  screenY: number
+): game.Position {
+  let tileX = (screenX + 16) / 16 - 1;
+  let tileY = (screenY + 16) / 16 - 1;
+  return { x: tileX, y: tileY };
 }
 
 // show a tooltip on the screen (only one at a time!)
