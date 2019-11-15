@@ -98,66 +98,30 @@ entityRegistry
 
       // this plant will check the adjacent tiles for water, if present it will provide a steady stream of moisture
       let nearbyWater: boolean = false;
-      // i know this code is awful please don't judge me
-      if (
-        game.currentGame
-          .getCurrentRoom()
-          .getTile(entity.getPosition().x - 1, entity.getPosition().y - 1)
-          .getType() == tile.TILE_TYPE.WATER
-      )
-        nearbyWater = true;
-      if (
-        game.currentGame
-          .getCurrentRoom()
-          .getTile(entity.getPosition().x - 1, entity.getPosition().y + 1)
-          .getType() == tile.TILE_TYPE.WATER
-      )
-        nearbyWater = true;
-      if (
-        game.currentGame
-          .getCurrentRoom()
-          .getTile(entity.getPosition().x + 1, entity.getPosition().y - 1)
-          .getType() == tile.TILE_TYPE.WATER
-      )
-        nearbyWater = true;
-      if (
-        game.currentGame
-          .getCurrentRoom()
-          .getTile(entity.getPosition().x + 1, entity.getPosition().y + 1)
-          .getType() == tile.TILE_TYPE.WATER
-      )
-        nearbyWater = true;
-      if (
-        game.currentGame
-          .getCurrentRoom()
-          .getTile(entity.getPosition().x + 1, entity.getPosition().y)
-          .getType() == tile.TILE_TYPE.WATER
-      )
-        nearbyWater = true;
-      if (
-        game.currentGame
-          .getCurrentRoom()
-          .getTile(entity.getPosition().x, entity.getPosition().y + 1)
-          .getType() == tile.TILE_TYPE.WATER
-      )
-        nearbyWater = true;
-      if (
-        game.currentGame
-          .getCurrentRoom()
-          .getTile(entity.getPosition().x - 1, entity.getPosition().y)
-          .getType() == tile.TILE_TYPE.WATER
-      )
-        nearbyWater = true;
-      if (
-        game.currentGame
-          .getCurrentRoom()
-          .getTile(entity.getPosition().x, entity.getPosition().y - 1)
-          .getType() == tile.TILE_TYPE.WATER
-      )
-        nearbyWater = true;
+      let offsets: game.Position[] = [
+        { x: -1, y: -1 },
+        { x: -1, y: 0 },
+        { x: -1, y: 1 },
+        { x: 0, y: -1 },
+        { x: 0, y: 1 },
+        { x: 1, y: -1 },
+        { x: 1, y: 0 },
+        { x: 1, y: 1 }
+      ];
 
-      if (nearbyWater == true) {
-        // there was water!
+      let room: room.Room = game.currentGame.getCurrentRoom();
+      let pos: game.Position = entity.getPosition();
+      offsets.forEach((offs: game.Position) => {
+        if (
+          !nearbyWater &&
+          room.getTile(pos.x + offs.x, pos.y + offs.y) != undefined
+        )
+          nearbyWater =
+            room.getTile(pos.x + offs.x, pos.y + offs.y).getType() ==
+            tile.TILE_TYPE.WATER;
+      });
+
+      if (nearbyWater) {
         entity.setMoisture(entity.getMoisture() + 10);
       }
     }
