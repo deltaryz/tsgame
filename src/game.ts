@@ -134,13 +134,17 @@ let defaultRoom = new room.Room(room.ROOM_TYPE.BASIC, 16, 16);
 let defaultPlayer = new entity.Player("Farmer");
 
 // spawn 1 lifebud to get the game started
-let defaultLifebud = new entity.Entity(entity.ENTITY_TYPE.PLANT_LIFEBUD);
-defaultLifebud.setPosition(defaultRoom.getRandomUnoccupiedPositionInRoom());
+let defaultLifebud = new entity.Entity(
+  entity.ENTITY_TYPE.PLANT_LIFEBUD,
+  defaultRoom.getRandomUnoccupiedPositionInRoom()
+);
 defaultRoom.addEntity(defaultLifebud);
 
 // spawn 1 stone just so it's there
-let defaultStone = new entity.Entity(entity.ENTITY_TYPE.OBJECT_STONE);
-defaultStone.setPosition(defaultRoom.getRandomUnoccupiedPositionInRoom());
+let defaultStone = new entity.Entity(
+  entity.ENTITY_TYPE.OBJECT_STONE,
+  defaultRoom.getRandomUnoccupiedPositionInRoom()
+);
 defaultRoom.addEntity(defaultStone);
 
 // clear out the placeholder entities sincec we don't need those anymore

@@ -95,6 +95,71 @@ entityRegistry
         // TODO: show number thing for moisture value changes / growth
         entity.grow(25);
       }
+
+      // this plant will check the adjacent tiles for water, if present it will provide a steady stream of moisture
+      let nearbyWater: boolean = false;
+      // i know this code is awful please don't judge me
+      if (
+        game.currentGame
+          .getCurrentRoom()
+          .getTile(entity.getPosition().x - 1, entity.getPosition().y - 1)
+          .getType() == tile.TILE_TYPE.WATER
+      )
+        nearbyWater = true;
+      if (
+        game.currentGame
+          .getCurrentRoom()
+          .getTile(entity.getPosition().x - 1, entity.getPosition().y + 1)
+          .getType() == tile.TILE_TYPE.WATER
+      )
+        nearbyWater = true;
+      if (
+        game.currentGame
+          .getCurrentRoom()
+          .getTile(entity.getPosition().x + 1, entity.getPosition().y - 1)
+          .getType() == tile.TILE_TYPE.WATER
+      )
+        nearbyWater = true;
+      if (
+        game.currentGame
+          .getCurrentRoom()
+          .getTile(entity.getPosition().x + 1, entity.getPosition().y + 1)
+          .getType() == tile.TILE_TYPE.WATER
+      )
+        nearbyWater = true;
+      if (
+        game.currentGame
+          .getCurrentRoom()
+          .getTile(entity.getPosition().x + 1, entity.getPosition().y)
+          .getType() == tile.TILE_TYPE.WATER
+      )
+        nearbyWater = true;
+      if (
+        game.currentGame
+          .getCurrentRoom()
+          .getTile(entity.getPosition().x, entity.getPosition().y + 1)
+          .getType() == tile.TILE_TYPE.WATER
+      )
+        nearbyWater = true;
+      if (
+        game.currentGame
+          .getCurrentRoom()
+          .getTile(entity.getPosition().x - 1, entity.getPosition().y)
+          .getType() == tile.TILE_TYPE.WATER
+      )
+        nearbyWater = true;
+      if (
+        game.currentGame
+          .getCurrentRoom()
+          .getTile(entity.getPosition().x, entity.getPosition().y - 1)
+          .getType() == tile.TILE_TYPE.WATER
+      )
+        nearbyWater = true;
+
+      if (nearbyWater == true) {
+        // there was water!
+        entity.setMoisture(entity.getMoisture() + 10);
+      }
     }
   })
   .set(ENTITY_TYPE.OBJECT_STONE, {

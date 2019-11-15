@@ -100,7 +100,7 @@ export class Room {
   }
 
   // returns the tile object that exists at a specific position
-  getTile(posX: number, posY: number) {
+  getTile(posX: number, posY: number): tile.Tile {
     return this.tiles[posX][posY];
   }
 
