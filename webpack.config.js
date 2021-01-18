@@ -6,7 +6,7 @@ const HTMLWebpackPlugin = require("html-webpack-plugin");
 module.exports = {
   mode: "development",
   entry: path.join(__dirname, "src", "game.ts"),
-  watch: true,
+  watch: false,
   plugins: [
     new CopyWebpackPlugin([
       {
